@@ -1,0 +1,206 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model ble_logs {
+  id           Int       @id @default(autoincrement())
+  mac          String?   @db.VarChar(17)
+  rssi         Int?
+  service_data String?
+  timestamp    DateTime? @db.Timestamp(6)
+}
+
+model ms_alert {
+  id          Int       @id @default(autoincrement())
+  trackid     String?   @db.VarChar(25)
+  vendorid    String?   @db.VarChar(25)
+  employeeid  String?   @db.VarChar(25)
+  gatewayid   String?   @db.VarChar(25)
+  reason      String?   @db.VarChar(100)
+  alerttype   String?   @db.VarChar(50)
+  causetypeid String?   @db.VarChar(25)
+  created_by  String?   @db.VarChar(50)
+  created_at  DateTime? @default(now()) @db.Timestamp(6)
+  updated_by  String?   @db.VarChar(50)
+  updated_at  DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model ms_alerttype {
+  reasonid    Int       @id @default(autoincrement())
+  reason_name String?   @db.VarChar(100)
+  created_by  String?   @db.VarChar(50)
+  created_at  DateTime? @default(now()) @db.Timestamp(6)
+  updated_by  String?   @db.VarChar(50)
+  updated_at  DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model ms_beacon {
+  id                Int       @id @default(autoincrement())
+  beacon_id         String?   @db.VarChar(25)
+  siteid            String?   @db.VarChar(5)
+  beacon_name       String?   @db.VarChar(100)
+  beacon_mac_addr   String?   @db.VarChar(25)
+  beacon_battery    Int?
+  beacon_battery_at DateTime? @db.Timestamp(6)
+  status            String?   @db.VarChar(1)
+  created_by        String?   @db.VarChar(50)
+  created_at        DateTime? @default(now()) @db.Timestamp(6)
+  updated_by        String?   @db.VarChar(50)
+  updated_at        DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model ms_department {
+  id              Int       @id @default(autoincrement())
+  department_id   String?   @db.VarChar(25)
+  department_name String?   @db.VarChar(100)
+  status          String?   @db.VarChar(1)
+  created_by      String?   @db.VarChar(50)
+  created_at      DateTime? @default(now()) @db.Timestamp(6)
+  updated_by      String?   @db.VarChar(50)
+  updated_at      DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model ms_employee {
+  id            Int       @id @default(autoincrement())
+  employee_id   String?   @db.VarChar(10)
+  siteid        String?   @db.VarChar(5)
+  employee_name String?   @db.VarChar(100)
+  department_id String?   @db.VarChar(25)
+  employee_type String?   @db.VarChar(25)
+  beacon_id     String?   @db.VarChar(25)
+  status        String?   @db.VarChar(1)
+  created_by    String?   @db.VarChar(50)
+  created_at    DateTime? @default(now()) @db.Timestamp(6)
+  updated_by    String?   @db.VarChar(50)
+  updated_at    DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model ms_floor {
+  id         Int       @id @default(autoincrement())
+  floor_id   String?   @db.VarChar(5)
+  siteid     String?   @db.VarChar(5)
+  floor_name String?   @db.VarChar(100)
+  filename   String?   @db.VarChar(255)
+  status     String?   @db.VarChar(1)
+  created_by String?   @db.VarChar(50)
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  updated_by String?   @db.VarChar(50)
+  updated_at DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model ms_gateway {
+  id               Int       @id @default(autoincrement())
+  gateway_id       String?   @db.VarChar(25)
+  siteid           String?   @db.VarChar(5)
+  gateway_name     String?   @db.VarChar(100)
+  floor_id         String?   @db.VarChar(5)
+  gateway_mac_addr String?   @db.VarChar(25)
+  ip_address       String?   @db.VarChar(50)
+  x_percent        Decimal?  @db.Decimal(5, 2)
+  y_percent        Decimal?  @db.Decimal(5, 2)
+  status           String?   @db.VarChar(1)
+  created_by       String?   @db.VarChar(50)
+  created_at       DateTime? @default(now()) @db.Timestamp(6)
+  updated_by       String?   @db.VarChar(50)
+  updated_at       DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model ms_schcontrols {
+  id         Int       @id @default(autoincrement())
+  scheduleid String?   @db.VarChar(25)
+  trackid    String?   @db.VarChar(25)
+  sch_start  DateTime? @db.Timestamp(6)
+  sch_end    DateTime? @db.Timestamp(6)
+  created_by String?   @db.VarChar(50)
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  updated_by String?   @db.VarChar(50)
+  updated_at DateTime? @default(now()) @db.Timestamp(6)
+  employeeid String?   @db.VarChar(25)
+}
+
+model ms_schedule {
+  scheduleid    Int       @id @default(autoincrement())
+  schedule_name String?   @db.VarChar(100)
+  created_by    String?   @db.VarChar(50)
+  created_at    DateTime? @default(now()) @db.Timestamp(6)
+  updated_by    String?   @db.VarChar(50)
+  updated_at    DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model ms_site {
+  siteid       Int       @id @default(autoincrement())
+  site_name    String?   @db.VarChar(100)
+  site_address String?   @db.VarChar(100)
+  site_cluster String?   @db.VarChar(50)
+  status       String?   @db.VarChar(1)
+  created_by   String?   @db.VarChar(50)
+  created_at   DateTime? @default(now()) @db.Timestamp(6)
+  updated_by   String?   @db.VarChar(50)
+  updated_at   DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model ms_track {
+  trackid     Int       @id @default(autoincrement())
+  siteid      String?   @db.VarChar(25)
+  gatewayid   String?   @db.VarChar(25)
+  track_name  String?   @db.VarChar(100)
+  track_start DateTime? @db.Timestamp(6)
+  track_end   DateTime? @db.Timestamp(6)
+  created_by  String?   @db.VarChar(50)
+  created_at  DateTime? @default(now()) @db.Timestamp(6)
+  updated_by  String?   @db.VarChar(50)
+  updated_at  DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model ms_vendor {
+  vendorid    Int       @id @default(autoincrement())
+  vendor_name String?   @db.VarChar(100)
+  status      String?   @db.VarChar(2)
+  created_by  String?   @db.VarChar(50)
+  created_at  DateTime? @default(now()) @db.Timestamp(6)
+  updated_by  String?   @db.VarChar(50)
+  updated_at  DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model tr_ble_logs {
+  id          Int       @id @default(autoincrement())
+  gateway_mac String?   @db.VarChar(17)
+  gateway_ip  String?   @db.VarChar(45)
+  device_mac  String?   @db.VarChar(17)
+  rssi        Float?    @db.Real
+  distance    Float?    @db.Real
+  battery     Int?
+  temperature Float?    @db.Real
+  timestamp   DateTime? @db.Timestamp(6)
+}
+
+model users {
+  id           BigInt    @id @default(autoincrement())
+  name         String?   @db.VarChar(100)
+  username     String?   @unique @db.VarChar(50)
+  password     String?   @db.VarChar(255)
+  email        String?   @db.VarChar(50)
+  role         String?   @db.VarChar(50)
+  status       String?   @db.Char(1)
+  created_user String?   @db.VarChar(50)
+  created_at   DateTime? @db.Timestamp(6)
+  updated_user String?   @db.VarChar(50)
+  updated_at   DateTime? @db.Timestamp(6)
+}
+
+model userslog {
+  id          Int       @id @default(autoincrement())
+  userid      String?   @db.VarChar(25)
+  user_do     String?   @db.VarChar(100)
+  user_login  DateTime? @default(now()) @db.Timestamp(6)
+  user_logout DateTime? @default(now()) @db.Timestamp(6)
+  created_by  String?   @db.VarChar(50)
+  created_at  DateTime? @default(now()) @db.Timestamp(6)
+  updated_by  String?   @db.VarChar(50)
+  updated_at  DateTime? @default(now()) @db.Timestamp(6)
+}
