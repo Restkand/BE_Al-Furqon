@@ -38,14 +38,18 @@ export const createDepartment = async (
       updated_by
     );
 
-    if (result > 0) {
-      return res.status(200).json(sendStatus("Department Successfully Created"));
-    } else {
-      return res.status(400).json(sendStatus("Failed To Create Department"));
-    }
-  } catch (error) {
+    res.status(200).json({
+      success: true,
+      message: 'Success Add Set Schedule',
+      data: result
+    })
+  } catch (error:any) {
     console.error("Error creating department:", error);
-    return res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({
+      success: true,
+      message: 'Error creating department',
+      error: error.message
+    })
   }
 };
 

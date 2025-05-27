@@ -23,6 +23,7 @@ export const createSite = async (
 ) => {
   try {
     const {
+      siteCode,
         site_name,
         site_address,
         site_cluster,
@@ -33,6 +34,7 @@ export const createSite = async (
     } = req.body;
 
     const result = await model.insertSite(
+      siteCode,
         site_name,
         site_address,
         site_cluster,
@@ -41,11 +43,11 @@ export const createSite = async (
         updated_by
     );
 
-    if (result > 0) {
-      return res.status(200).json(sendStatus("Site Successfully Created"));
-    } else {
-      return res.status(400).json(sendStatus("Failed To Create Site"));
-    }
+    res.status(200).json({
+      success: true,
+      message: 'Success Add Gateway',
+      data: result
+  })
   } catch (error) {
     console.error("Error creating vendor:", error);
     return res.status(500).json({ error: "Internal Server Error" });

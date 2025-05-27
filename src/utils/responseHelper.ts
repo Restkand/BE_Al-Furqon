@@ -18,3 +18,10 @@ export function sendStatus(message: string) {
     };
   };
   
+  export const responseformat = (status: any, data: any, message:any, res: any) => {
+    res.status(status).json({
+      status,
+      data,
+      message,
+    });
+  };

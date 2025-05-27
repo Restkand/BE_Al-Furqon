@@ -5,6 +5,7 @@ export const getListDepart = async()=>{
         return await prisma.ms_department.findMany({
             where:{status: "A"},
             select : {
+                id: true,
                 department_id: true,
                 department_name:true,
                 status: true
@@ -18,11 +19,17 @@ export const getListDepart = async()=>{
 
 export const insertDepart = async(departmentCode : string,departmentName : string, status: string,created_by: string,updated_by:string)=>{
     try {
-       const result = await prisma.$executeRaw`
-        INSERT INTO "ms_department" (department_id,department_name,status,created_by,created_at,updated_by,updated_at)
-        VALUES (${departmentCode},${departmentName},${status},${created_by},NOW(),${updated_by},NOW())
-        `
-        return result;
+        return await prisma.ms_department.create({
+            data:{
+                department_id: departmentCode,
+                department_name: departmentName,
+                status: status,
+                created_by: created_by,
+                created_at: new Date(),
+                updated_by: updated_by,
+                updated_at: new Date()
+            }
+        });
     } catch (error) {
         console.error('Failed to create department:', error);
         throw error;

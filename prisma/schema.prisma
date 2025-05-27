@@ -78,6 +78,7 @@ model ms_employee {
   created_at    DateTime? @default(now()) @db.Timestamp(6)
   updated_by    String?   @db.VarChar(50)
   updated_at    DateTime? @default(now()) @db.Timestamp(6)
+  vendor_id     String?   @db.VarChar(20)
 }
 
 model ms_floor {
@@ -91,6 +92,7 @@ model ms_floor {
   created_at DateTime? @default(now()) @db.Timestamp(6)
   updated_by String?   @db.VarChar(50)
   updated_at DateTime? @default(now()) @db.Timestamp(6)
+  floor_area String?   @db.VarChar(20)
 }
 
 model ms_gateway {
@@ -113,9 +115,6 @@ model ms_gateway {
 model ms_schcontrols {
   id         Int       @id @default(autoincrement())
   scheduleid String?   @db.VarChar(25)
-  trackid    String?   @db.VarChar(25)
-  sch_start  DateTime? @db.Timestamp(6)
-  sch_end    DateTime? @db.Timestamp(6)
   created_by String?   @db.VarChar(50)
   created_at DateTime? @default(now()) @db.Timestamp(6)
   updated_by String?   @db.VarChar(50)
@@ -124,12 +123,15 @@ model ms_schcontrols {
 }
 
 model ms_schedule {
-  scheduleid    Int       @id @default(autoincrement())
-  schedule_name String?   @db.VarChar(100)
-  created_by    String?   @db.VarChar(50)
-  created_at    DateTime? @default(now()) @db.Timestamp(6)
-  updated_by    String?   @db.VarChar(50)
-  updated_at    DateTime? @default(now()) @db.Timestamp(6)
+  scheduleid           Int       @id @default(autoincrement())
+  schedule_name        String?   @db.VarChar(100)
+  schedule_description String?   @db.VarChar(50)
+  department_id        String?   @db.VarChar(5)
+  created_by           String?   @db.VarChar(50)
+  created_at           DateTime? @default(now()) @db.Timestamp(6)
+  updated_by           String?   @db.VarChar(50)
+  updated_at           DateTime? @default(now()) @db.Timestamp(6)
+  status               String?   @db.VarChar(2)
 }
 
 model ms_site {
@@ -142,6 +144,7 @@ model ms_site {
   created_at   DateTime? @default(now()) @db.Timestamp(6)
   updated_by   String?   @db.VarChar(50)
   updated_at   DateTime? @default(now()) @db.Timestamp(6)
+  site_code    String?   @db.VarChar(15)
 }
 
 model ms_track {
@@ -158,7 +161,8 @@ model ms_track {
 }
 
 model ms_vendor {
-  vendorid    Int       @id @default(autoincrement())
+  id          Int       @id(map: "ms_vendor_new_pkey") @default(autoincrement())
+  vendor_id   String?   @db.VarChar(50)
   vendor_name String?   @db.VarChar(100)
   status      String?   @db.VarChar(2)
   created_by  String?   @db.VarChar(50)
@@ -199,6 +203,92 @@ model userslog {
   user_do     String?   @db.VarChar(100)
   user_login  DateTime? @default(now()) @db.Timestamp(6)
   user_logout DateTime? @default(now()) @db.Timestamp(6)
+  created_by  String?   @db.VarChar(50)
+  created_at  DateTime? @default(now()) @db.Timestamp(6)
+  updated_by  String?   @db.VarChar(50)
+  updated_at  DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model ms_route {
+  id         Int       @id(map: "ms_routenew_pkey") @default(autoincrement())
+  route_id   String?   @db.VarChar(50)
+  route_name String?   @db.VarChar(10)
+  created_by String?   @db.VarChar(50)
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  updated_by String?   @db.VarChar(50)
+  updated_at DateTime? @default(now()) @db.Timestamp(6)
+  status     String?   @db.VarChar(2)
+}
+
+model ms_route1 {
+  id         Int       @id(map: "ms_route_pkey") @default(autoincrement())
+  route_id   String?   @db.VarChar(50)
+  route_seq  String?   @db.VarChar(10)
+  gateway_id String?   @db.VarChar(10)
+  created_by String?   @db.VarChar(50)
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  updated_by String?   @db.VarChar(50)
+  updated_at DateTime? @default(now()) @db.Timestamp(6)
+  status     String?   @db.VarChar(2)
+  route_name String?   @db.VarChar(50)
+}
+
+model ms_route_detail {
+  id         Int       @id @default(autoincrement())
+  route_id   String?   @db.VarChar(50)
+  route_seq  String?   @db.VarChar(10)
+  gateway_id String?   @db.VarChar(50)
+  start_time DateTime? @db.Time(6)
+  end_time   DateTime? @db.Time(6)
+  created_by String?   @db.VarChar(50)
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  updated_by String?   @db.VarChar(50)
+  updated_at DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model ms_schcontrols_detail {
+  id          Int       @id @default(autoincrement())
+  schedule_id String?   @db.VarChar(50)
+  set_id      Int?
+  track_id    String?   @db.VarChar(50)
+  sch_start   DateTime? @db.Timestamp(6)
+  sch_end     DateTime? @db.Timestamp(6)
+  status      String?   @db.VarChar(5)
+  created_by  String?   @db.VarChar(50)
+  created_at  DateTime? @default(now()) @db.Timestamp(6)
+  updated_by  String?   @db.VarChar(50)
+  updated_at  DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model ms_batch_team {
+  id            Int       @id @default(autoincrement())
+  team_id       String?   @db.VarChar(50)
+  team_name     String?   @db.VarChar(50)
+  created_by    String?   @db.VarChar(50)
+  created_at    DateTime? @default(now()) @db.Timestamp(6)
+  updated_by    String?   @db.VarChar(50)
+  updated_at    DateTime? @default(now()) @db.Timestamp(6)
+  route_id      String?   @db.VarChar(50)
+  department_id String?   @db.VarChar(50)
+}
+
+model ms_batch_team_detail {
+  id          Int       @id @default(autoincrement())
+  team_id     String?   @db.VarChar(50)
+  employee_id String?   @db.VarChar(50)
+  gateway_id  String?   @db.VarChar(50)
+  status      String?   @db.VarChar(5)
+  created_by  String?   @db.VarChar(50)
+  created_at  DateTime? @default(now()) @db.Timestamp(6)
+  updated_by  String?   @db.VarChar(50)
+  updated_at  DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model ms_alert_reason {
+  id          Int       @id @default(autoincrement())
+  reason_id   String?   @db.VarChar(50)
+  reason_name String?   @db.VarChar(50)
+  status      String?   @db.VarChar(5)
   created_by  String?   @db.VarChar(50)
   created_at  DateTime? @default(now()) @db.Timestamp(6)
   updated_by  String?   @db.VarChar(50)

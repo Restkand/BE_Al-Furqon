@@ -5,6 +5,7 @@ export const getListBeacon = async()=>{
         return await prisma.ms_beacon.findMany({
             where:{status: "A"},
             select : {
+                id: true,
                 beacon_id:true,
                 beacon_name: true,
                 beacon_battery: true,

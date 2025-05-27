@@ -9,6 +9,7 @@ export const getListSite = async()=>{
                 site_name: true,
                 site_address:true,
                 site_cluster:true,
+                site_code: true,
                 status: true
             }
         })
@@ -18,11 +19,11 @@ export const getListSite = async()=>{
     }
 }
 
-export const insertSite = async(site_name : string, site_address: string,site_cluster : string, status: string,created_by: string,updated_by:string)=>{
+export const insertSite = async(siteCode: string,site_name : string, site_address: string,site_cluster : string, status: string,created_by: string,updated_by:string)=>{
     try {
        const result = await prisma.$executeRaw`
-        INSERT INTO "ms_site" (site_name,site_address,site_cluster,status,created_by,created_at,updated_by,updated_at)
-        VALUES (${site_name},${site_address},${site_cluster},${status},${created_by},NOW(),${updated_by},NOW())
+        INSERT INTO "ms_site" (site_name,site_address,site_cluster,status,created_by,created_at,updated_by,updated_at,site_code)
+        VALUES (${site_name},${site_address},${site_cluster},${status},${created_by},NOW(),${updated_by},NOW(),${siteCode})
         `
         return result;
     } catch (error) {
@@ -56,7 +57,7 @@ export const deleteSite = async(id:string,updated_by:string) =>{
     try {
         const idAsNumber = Number(id);
         const result = await prisma.$executeRaw`
-        Update "ms_site" set status='I',updated_by=${updated_by},updated_at=NOW() WHERE siteid=${idAsNumber}
+        Update "ms_site" set status='X',updated_by=${updated_by},updated_at=NOW() WHERE siteid=${idAsNumber}
         `
         return result
     } catch (error) {

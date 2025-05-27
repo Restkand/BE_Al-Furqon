@@ -1,13 +1,13 @@
-import * as model from "../models/beacon";
+import * as model from "../models/gateway";
 import { sendStatus } from "../utils/responseHelper";
 import express from "express";
 
-export const listBeac = async(
+export const listGate = async(
     req: express.Request,
     res: express.Response
 ) => {
     try {
-        const beacon = await model.getListBeacon()
+        const beacon = await model.getListGateway()
 
         res.json(beacon)
     } catch (error) {
@@ -16,34 +16,50 @@ export const listBeac = async(
     }
 }
 
-export const createBeac = async (
+export const listGateByFloor = async(
+  req: express.Request,
+  res: express.Response
+) => {
+  try {
+    const {floorid, site} = req.body
+    const listgate = await model.listGatewayByFloor(floorid,site)
+    res.json(listgate)
+  } catch (error) {
+    console.error("Error creating beacon:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+}
+
+export const createGateway = async (
     req: express.Request,
     res: express.Response
 ) => {
   try {
     const {
-        beaconCode,
+        gateway_id,
         site,
         name,
-        employee,
-        beaconMacAddr,
-        beaconBattery,
-        BeaconBatteryCreat,
+        floor, 
+        gatewayMacAddr,
+        ipAddr,
+        x_coordinate,
+        y_coordinate,
         status,
-        created_by ,
+        created_by,
         updated_by
     } = req.body;
 
-    const result = await model.insertBeacon(
-        beaconCode,
+    const result = await model.insertGateway(
+        gateway_id,
         site,
         name,
-        employee,
-        beaconMacAddr,
-        beaconBattery,
-        BeaconBatteryCreat,
+        floor, 
+        gatewayMacAddr,
+        ipAddr,
+        x_coordinate,
+        y_coordinate,
         status,
-        created_by ,
+        created_by,
         updated_by
     );
 
@@ -52,13 +68,16 @@ export const createBeac = async (
       message: 'Success Add Gateway',
       data: result
   })
-  } catch (error) {
-    console.error("Error creating beacon:", error);
-    return res.status(500).json({ error: "Internal Server Error" });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: 'Error Fetch Insert',
+      error: error.message
+  })
   }
 };
 
-export const updateBeac = async(
+export const updateGateway = async(
   req: express.Request,
   res: express.Response
 )=>{
@@ -67,24 +86,22 @@ export const updateBeac = async(
     const {
         site,
         name,
-        employee,
-        beaconMacAddr,
-        beaconBattery,
-        BeaconBatteryCreat,
-        status , 
-        updated_by , 
+        floor, 
+        gatewayMacAddr,
+        ipAddr,
+        status,
+        updated_by, 
         id
     } = req.body
 
-    const vendor = await model.updateBeacon(
+    const vendor = await model.updateGateway(
         site,
         name,
-        employee,
-        beaconMacAddr,
-        beaconBattery,
-        BeaconBatteryCreat,
-        status , 
-        updated_by , 
+        floor, 
+        gatewayMacAddr,
+        ipAddr,
+        status,
+        updated_by, 
         id
     )
     if (vendor > 0) {
@@ -115,7 +132,7 @@ export const delBeac = async (
             return res.status(400).json({ message: "Missing user ID" });
           }
 
-        const result = await model.deleteBeacon(id,updated_by)
+        const result = await model.deleteGateway(id,updated_by)
         if (result > 0) {
             return res.status(200).json(sendStatus("Success delete user"))
         }else{
@@ -128,4 +145,17 @@ export const delBeac = async (
     }
 }
 
+export const listGatewayByRoute = async(
+  req: express.Request,
+  res: express.Response
+) => {
+  try {
+    const {routeid} = req.body
+    const list = await model.getListGatewayByRoute(routeid)
+    res.status(200).json(list)
+  } catch (error) {
+    console.error("Error creating vendor:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+}
 

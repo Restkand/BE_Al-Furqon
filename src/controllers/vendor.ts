@@ -1,6 +1,6 @@
 import * as model from "../models/vendor";
 // import {getListVendor} from "../models/vendor"
-import { sendStatus } from "../utils/responseHelper";
+import { sendMessageStatus, sendStatus } from "../utils/responseHelper";
 import express from "express";
 
 export const listVendor = async(
@@ -42,15 +42,16 @@ export const createVendor = async (
 ) => {
   try {
     const {
-      // vendorid,
+      vendorID,
       vendorName,
       status,
       created_by,
       updated_by
     } = req.body;
+    
 
     const result = await model.insertVendor(
-      // vendorid,
+      vendorID,
       vendorName,
       status,
       created_by,
@@ -58,9 +59,9 @@ export const createVendor = async (
     );
 
     if (result > 0) {
-      return res.status(200).json(sendStatus("Vendor Successfully Created"));
+      return res.status(200).json(sendMessageStatus("Vendor Successfully Created", 200));
     } else {
-      return res.status(400).json(sendStatus("Failed To Create Vendor"));
+      return res.status(400).json(sendMessageStatus("Failed To Create Vendor",404));
     }
   } catch (error) {
     console.error("Error creating vendor:", error);

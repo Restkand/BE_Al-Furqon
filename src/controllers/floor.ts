@@ -1,7 +1,9 @@
+import path from "path";
 import * as model from "../models/floor";
 // import {getListVendor} from "../models/vendor"
 import { sendStatus } from "../utils/responseHelper";
 import express from "express";
+import fs from 'fs'
 
 export const listFloor = async(
     req: express.Request,
@@ -23,6 +25,7 @@ export const createFloor = async (
 ) => {
   try {
     const {
+      floorID,
       site,
       nama,
       area,
@@ -30,26 +33,60 @@ export const createFloor = async (
       created_by,
       updated_by
     } = req.body;
+    const filename = req.file?.filename || '';
 
     const result = await model.insertFloor(
+      floorID,
       site,
       nama,
       area,
       status,
       created_by,
-      updated_by
+      updated_by,
+      filename
     );
 
-    if (result > 0) {
-      return res.status(200).json(sendStatus("Floor Successfully Created"));
-    } else {
-      return res.status(400).json(sendStatus("Failed To Create Floor"));
-    }
+    res.status(200).json({
+      success: true,
+      message: 'Success Add Gateway',
+      data: result
+  })
   } catch (error) {
     console.error("Error creating floor:", error);
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
+export const getMapFloorByID = async(
+  req: express.Request,
+  res: express.Response
+)=>{
+  try {
+    const {
+      id
+    }= req.params
+    const filename = await model.getMapFloorByID(id);
+    console.log("Filename from DB:", filename);
+    if (!filename) {
+      return res.status(404).send('Image not found');
+    }
+    
+    const imagePath = path.join(process.cwd(), 'uploads', filename);
+    console.log("Image full path:", imagePath);
+    
+    if (!fs.existsSync(imagePath)) {
+      console.log("File does not exist!");
+      return res.status(404).send('Image file not found');
+    }
+    
+    res.sendFile(imagePath);
+  } catch (error) {
+    console.error('Error fetching image:', error)
+    res.status(500).send('Server error')
+  }
+}
+
+
 
 export const updateFloor = async(
   req: express.Request,
@@ -109,6 +146,20 @@ export const delFloor = async (
         console.log(error);
         res.status(500).json({ error: 'Failed to fetch users' });
     }
+}
+
+export const getListfloorBySite = async(
+  req: express.Request,
+  res: express.Response
+) => {
+  try {
+    const {site} = req.body
+
+    const list = await model.listFloorBySite(site)
+    res.status(200).json(list);
+  } catch (error) {
+    
+  }
 }
 
 
