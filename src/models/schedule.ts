@@ -79,11 +79,6 @@ export const getListSetSchedule = async (department: string) => {
 
 export const insertSetChedule = async (scheduleName: string, scheduleDesc : string, department : string, created_by: string, updated_by: string) => {
     try {
-        // const res = await prisma.$executeRaw`
-        // INSERT INTO ms_schedule(schedule_name,schedule_description,department_id,created_by,created_at,updated_by,updated_at)
-        // VALUES (${scheduleName},${scheduleDesc},${department},${created_by},NOW(),${updated_by},NOW())
-        // `
-        // return res
         return await prisma.ms_schedule.create({
             data:{
                 schedule_name: scheduleName,
@@ -102,6 +97,50 @@ export const insertSetChedule = async (scheduleName: string, scheduleDesc : stri
     
     }
 }
+
+export const updateSetChedule = async (id: string,scheduleName: string, scheduleDesc : string, department : string,  updated_by: string) => {
+    try {
+        const idAsNumber = Number(id);
+        return await prisma.ms_schedule.update({
+            where: {
+                scheduleid: idAsNumber
+            },
+            data:{
+                schedule_name: scheduleName,
+                schedule_description: scheduleDesc,
+                department_id: department,
+                updated_by: updated_by,
+                updated_at: new Date(),
+            }
+        });
+    } catch (error) {
+        console.error('Failed to get list vendor:', error);
+        throw error;
+    
+    }
+}
+
+export const deleteSetChedule = async (id: string,  updated_by: string) => {
+    try {
+        const idAsNumber = Number(id);
+        return await prisma.ms_schedule.update({
+            where: {
+                scheduleid: idAsNumber
+            },
+            data:{
+                status: "X",
+                updated_by: updated_by,
+                updated_at: new Date(),
+            }
+        });
+    } catch (error) {
+        console.error('Failed to get list vendor:', error);
+        throw error;
+    
+    }
+}
+
+
 
 interface DetailInput {
     setId: string;
@@ -148,18 +187,29 @@ export const insertScheduleControl =  async(scheduleID : string,details: DetailI
           insertedDetails: detailCount,
         },
       };
-        // return await prisma.ms_schcontrols.create({
-        //     data:{
-        //         scheduleid: scheduleID,
-        //         created_by: created_by,
-        //         created_at: new Date(),
-        //         updated_by: updated_by,
-        //         updated_at: new Date(),
-        //         employeeid: employee
-        //     }
-        // })
     } catch (error) {
         console.error('Failed to insert', error);
         throw error;
     }
 }
+
+export const updateScheduleControl = async(id: number, set_id: any, track: string, start: Date , end: Date, updated_by: string) => {
+    try {
+        return await prisma.ms_schcontrols_detail.update({
+            where: { id },
+            data: {
+            set_id: set_id,
+            track_id : track,
+            sch_start: start,
+            sch_end: end,
+            updated_by,
+            updated_at: new Date(),
+            },
+        })
+    } catch (error) {
+        console.error('Failed to insert', error);
+        throw error;
+    }
+}
+
+

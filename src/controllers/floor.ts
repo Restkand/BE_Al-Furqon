@@ -2,26 +2,26 @@ import path from "path";
 import * as model from "../models/floor";
 // import {getListVendor} from "../models/vendor"
 import { sendStatus } from "../utils/responseHelper";
-import express from "express";
 import fs from 'fs'
+import { Request, Response } from "express";
 
 export const listFloor = async(
-    req: express.Request,
-    res: express.Response
-) => {
+    req: Request,
+    res: Response
+): Promise<void> => {
     try {
         const floor = await model.getListFloor()
 
         res.json(floor)
     } catch (error) {
         console.error("Error creating floor:", error);
-        return res.status(500).json({ error: "Internal Server Error" });
+         res.status(500).json({ error: "Internal Server Error" });
     }
 }
 
 export const createFloor = async (
-    req: express.Request,
-    res: express.Response
+    req: Request,
+    res: Response
 ) => {
   try {
     const {
@@ -51,22 +51,26 @@ export const createFloor = async (
       message: 'Success Add Gateway',
       data: result
   })
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error creating floor:", error);
-    return res.status(500).json({ error: "Internal Server Error" });
+     res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      error: error.message 
+     });
   }
 };
 
 export const getMapFloorByID = async(
-  req: express.Request,
-  res: express.Response
-)=>{
+  req: Request,
+  res: Response
+): Promise<any>=>{
   try {
     const {
       id
-    }= req.params
+    }= req.body
     const filename = await model.getMapFloorByID(id);
-    console.log("Filename from DB:", filename);
+    // console.log("Filename from DB:", filename);
     if (!filename) {
       return res.status(404).send('Image not found');
     }
@@ -76,7 +80,7 @@ export const getMapFloorByID = async(
     
     if (!fs.existsSync(imagePath)) {
       console.log("File does not exist!");
-      return res.status(404).send('Image file not found');
+       res.status(404).send('Image file not found');
     }
     
     res.sendFile(imagePath);
@@ -86,11 +90,9 @@ export const getMapFloorByID = async(
   }
 }
 
-
-
 export const updateFloor = async(
-  req: express.Request,
-  res: express.Response
+  req: Request,
+  res: Response
 )=>{
   
   try {
@@ -101,64 +103,69 @@ export const updateFloor = async(
       id
     } = req.body
 
-    const vendor = await model.updateFl(
+    const floor = await model.updateFl(
       vendorName,
       status,
       updated_by,
       id
     )
-    if (vendor > 0) {
-      return res.status(200).json(sendStatus('Success Update Vendor'))
-    }else{
-      return res.status(400).json(sendStatus('Failed Update Vendor'))
-    }
-  } catch (error) {
-    console.error("Error creating vendor:", error);
-    return res.status(500).json({ error: "Internal Server Error" });
+    res.status(200).json({
+      success: true,
+      message: "Success Update Floor",
+      data: floor
+    })
+  } catch (error:any) {
+    console.error("Error creating floor:", error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching floor',
+      error: error.message
+    })
   }
 }
 
+
+
 export const delFloor = async (
-    req: express.Request,
-    res: express.Response
+    req: Request,
+    res: Response
 ) => {
-  console.log('Received Headers:', req.headers);
-  console.log('Received Body:', req.body);
     try {
         const {
-            id
-        } = req.params
-        const {
+          id,
           updated_by
         }= req.body
         if (!id) {
-            return res.status(400).json({ message: "Missing user ID" });
+             res.status(400).json({ message: "Missing user ID" });
           }
 
         const result = await model.deleteFl(id,updated_by)
-        if (result > 0) {
-            return res.status(200).json(sendStatus("Success delete user"))
-        }else{
-            return res.status(400).json(sendStatus("Failed Delete User"))
-        
-        }
-    } catch (error) {
+        res.status(200).json({
+          success: true,
+          message: "Success Delete Floor",
+          data: result
+        })
+    } catch (error:any) {
         console.log(error);
-        res.status(500).json({ error: 'Failed to fetch users' });
+        res.status(500).json({
+          success: false,
+          message: "Failed to fetch floor",  
+        error: error.message });
     }
 }
 
 export const getListfloorBySite = async(
-  req: express.Request,
-  res: express.Response
-) => {
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
     const {site} = req.body
 
     const list = await model.listFloorBySite(site)
     res.status(200).json(list);
   } catch (error) {
-    
+    console.log(error);
+        res.status(500).json({ error: 'Failed to fetch floor' });
   }
 }
 

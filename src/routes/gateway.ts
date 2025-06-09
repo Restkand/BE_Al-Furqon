@@ -8,6 +8,6 @@ router.post('/create',GatewayControllers.createGateway);
 router.post('/listgatebyroute',GatewayControllers.listGatewayByRoute);
 router.post('/listgate',GatewayControllers.listGateByFloor);
 router.post('/update',GatewayControllers.updateGateway);
-router.delete('/delete/:id',GatewayControllers.delBeac)
+router.post('/delete',GatewayControllers.delBeac)
 
 export default router

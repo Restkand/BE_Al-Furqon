@@ -1,25 +1,25 @@
+import { Request, Response } from "express";
 import * as model from "../models/department";
 // import {getListVendor} from "../models/vendor"
 import { sendStatus } from "../utils/responseHelper";
-import express from "express";
 
 export const listDepartment = async(
-    req: express.Request,
-    res: express.Response
-) => {
+    req: Request,
+    res: Response
+): Promise<void> => {
     try {
         const vendor = await model.getListDepart()
 
-        res.json(vendor)
+        res.status(200).json(vendor)
     } catch (error) {
         console.error("Error creating department:", error);
-        return res.status(500).json({ error: "Internal Server Error" });
+        res.status(500).json({ error: "Internal Server Error" });
     }
 }
 
 export const createDepartment = async (
-    req: express.Request,
-    res: express.Response
+    req: Request,
+    res: Response
 ) => {
   try {
     const {
@@ -54,8 +54,8 @@ export const createDepartment = async (
 };
 
 export const updateDepartment = async(
-  req: express.Request,
-  res: express.Response
+  req: Request,
+  res: Response
 )=>{
   
   try {
@@ -74,45 +74,48 @@ export const updateDepartment = async(
       updated_by,
       id
     )
-    if (depart > 0) {
-      return res.status(200).json(sendStatus('Success Update Department'))
-    }else{
-      return res.status(400).json(sendStatus('Failed Update Department'))
-    }
-  } catch (error) {
+    res.status(200).json({
+      success: true,
+      message: "Success Update Department",
+      data: depart
+    })
+  } catch (error: any) {
     console.error("Error creating department:", error);
-    return res.status(500).json({ error: "Internal Server Error" });
+     res.status(500).json({ 
+      success: false,
+      message: "Internal Server Error",
+      error: error.message
+     });
   }
 }
 
-export const delDepartment = async (
-    req: express.Request,
-    res: express.Response
-) => {
-  console.log('Received Headers:', req.headers);
-  console.log('Received Body:', req.body);
-    try {
-        const {
-            id
-        } = req.params
-        const {
-          updated_by
-        }= req.body
-        if (!id) {
-            return res.status(400).json({ message: "Missing user ID" });
-          }
-
-        const result = await model.deleteDepart(id,updated_by)
-        if (result > 0) {
-            return res.status(200).json(sendStatus("Success delete department"))
-        }else{
-            return res.status(400).json(sendStatus("Failed Delete department"))
-        
-        }
-    } catch (error) {
-        console.log(error);
-        res.status(500).json({ error: 'Failed to fetch department' });
+export const delDepartment = async(
+  req: Request,
+  res: Response
+)=>{
+  
+  try {
+    const {
+      id,
+      updated_by
+    } = req.body
+    if (!id) {
+       res.status(400).json({ message: "Missing user ID" });
     }
+    const result = await model.deleteDepart(id,updated_by)
+    res.status(200).json({
+      success: true,
+      message: "Success Update Department",
+      data: result
+    })
+  } catch (error: any) {
+    console.error("Error creating department:", error);
+     res.status(500).json({ 
+      success: false,
+      message: "Internal Server Error",
+      error: error.message
+     });
+  }
 }
 
 

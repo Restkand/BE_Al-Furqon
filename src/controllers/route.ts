@@ -2,12 +2,12 @@ import { json } from "stream/consumers";
 import * as model from "../models/route";
 // import {getListVendor} from "../models/vendor"
 import { sendMessageStatus, sendStatus } from "../utils/responseHelper";
-import express from "express";
+import  { Request, Response } from "express";
 import { generateId } from "../utils/tools";
 
 export const listRoute = async(
-    req: express.Request,
-    res: express.Response
+    req: Request,
+    res: Response
 ) => {
     try {
         const route = await model.getListroute()
@@ -15,26 +15,26 @@ export const listRoute = async(
         res.json(route)
     } catch (error) {
         console.error("Error creating vendor:", error);
-        return res.status(500).json({ error: "Internal Server Error" });
+        res.status(500).json({ error: "Internal Server Error" });
     }
 }
 
 export const dropDownRoute = async (
-    req: express.Request,
-    res: express.Response
+    req: Request,
+    res: Response
 ) => {
     try {
         const list = await model.listRoute()
         res.status(200).json(list)
     } catch (error) {
         console.error("Error creating vendor:", error);
-        return res.status(500).json({ error: "Internal Server Error" });
+        res.status(500).json({ error: "Internal Server Error" });
     }
 }
 
 export const listRouteByID = async(
-    req: express.Request,
-    res: express.Response
+    req: Request,
+    res: Response
 ) => {
     try {
         const {routeid} = req.body
@@ -42,7 +42,7 @@ export const listRouteByID = async(
         res.status(200).json(list);
     } catch (error) {
         console.error("Error creating vendor:", error);
-        return res.status(500).json({ error: "Internal Server Error" });
+        res.status(500).json({ error: "Internal Server Error" });
     }
 }
 
@@ -66,8 +66,8 @@ export const listRouteByID = async(
 // }
 
 export const createRoute = async (
-    req: express.Request,
-    res: express.Response
+    req: Request,
+    res: Response
 ) => {
   try {
     const {
@@ -100,14 +100,14 @@ export const createRoute = async (
     })
   } catch (error) {
     console.error("Error creating vendor:", error);
-    return res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
 export const createRouteNew = async(
-    req: express.Request,
-    res: express.Response
-) => {
+    req: Request,
+    res: Response
+): Promise<any> => {
     try {
         const {
             name,
@@ -116,26 +116,39 @@ export const createRouteNew = async(
             updated_by
         } = req.body
 
-        const generateRouteID = await generateId()
+        const generateRouteID = await generateId();
 
-        const result = await model.insertRouteNew(
-            generateRouteID,
-            name,
-            details,
-            created_by,
-            updated_by
-        )
+    const result = await model.insertRouteNew(
+      generateRouteID,
+      name,
+      details,
+      created_by,
+      updated_by
+    );
 
-        if (result.success) {
-            return res.status(201).json(result);
-          } else {
-            return res.status(500).json(result);
-          }
-
+    // ✅ Check for success before accessing data
+    if (!result.success || !result.data) {
+        return res.status(400).json({
+          success: false,
+          message: result.message,
+          error: result.error,
+        });
+      }
+  
+      const { master, insertedDetails } = result.data;
+  
+      return res.status(200).json({
+        success: true,
+        message: result.message,
+        data: {
+          master,
+          insertedDetails,
+        },
+      });
         
     } catch (error) {
         console.error("Error creating vendor:", error);
-        return res.status(500).json({ error: "Internal Server Error" });
+        res.status(500).json({ error: "Internal Server Error" });
     }
 }
 

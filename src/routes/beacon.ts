@@ -6,6 +6,6 @@ const router = Router();
 router.get('/', BeaconControllers.listBeac);
 router.post('/create',BeaconControllers.createBeac);
 router.post('/update',BeaconControllers.updateBeac);
-router.delete('/delete/:id',BeaconControllers.delBeac)
+router.post('/delete',BeaconControllers.deleteBeac)
 
 export default router

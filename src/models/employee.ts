@@ -32,16 +32,80 @@ export const listemploy = async(routeid: string) => {
     }
 } 
 
-export const insertEmp = async (employeeid: string,employeename: string,employeetype: string,vendor: string,beacon: string,site:string,department: string,status:string,created_by:string,updated_by: string) => {
+export const insertEmp = async (employeeid: string,employeename: string,employeetype: string,vendor: string,beacon: string,site:string,department: string,phone:string,filename:string,status:string,created_by:string,updated_by: string) => {
     try {
-        const result = await prisma.$executeRaw`
-        INSERT INTO "ms_employee" (employee_id,siteid,employee_name,department_id,employee_type,beacon_id,status,created_by,created_at,updated_by,updated_at,vendor_id)
-        VALUES(${employeeid},${site},${employeename},${department},${employeetype},${beacon},${status},${created_by},NOW(),${updated_by},NOW(),${vendor})
-        `
-        return result
+        return await prisma.ms_employee.create({
+            data:{
+                employee_id: employeeid,
+                employee_name: employeename,
+                employee_type: employeetype,
+                vendor_id: vendor,
+                beacon_id: beacon,
+                siteid: site,
+                department_id: department,
+                emp_phone: phone,
+                photo: filename,
+                status: status,
+                created_by: created_by,
+                created_at: new Date(),
+                updated_by: updated_by,
+                updated_at: new Date()
+            }
+        })
     } catch (error) {
         console.error('Failed to create vendor:', error);
         throw error;
+    }
+}
+
+export const updateEmployee = async(id: any, employeeName: string,employeePhone: string, department: string, employeeType: string,vendor: string,beacon:string,status: string,filename:string,updated_by: string) => {
+    try {
+        const idAsNumber = Number(id)
+        return await prisma.ms_employee.update({
+            where:{
+                id: idAsNumber
+            },
+            data:{
+                employee_name: employeeName,
+                employee_type: employeeType,
+                emp_phone: employeePhone,
+                beacon_id: beacon,
+                department_id: department,
+                vendor_id: vendor,
+                status: status,
+                photo: filename,
+                updated_by: updated_by,
+                updated_at: new Date()
+            }
+        })
+    } catch (error) {
+        console.error('Failed to create vendor:', error);
+        throw error;
+    }
+}
+
+export const getEmployeeDetail = async (id: number) => {
+    try {
+      return await prisma.ms_employee.findUnique({
+        where: { id },
+      });
+    } catch (error) {
+      throw new Error("Failed to fetch employee detail");
+    }
+  };
+
+export const deleteEmployee = async (id:number, updated_by: string) => {
+    try {
+        return await prisma.ms_employee.update({
+            where:{id},
+            data:{
+                status: "X",
+                updated_by: updated_by,
+                updated_at: new Date()
+            }
+        })
+    } catch (error) {
+        throw new Error("Failed to fetch employee detail");
     }
 }
 

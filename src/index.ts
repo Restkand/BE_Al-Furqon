@@ -12,6 +12,8 @@ import scheduleRouter from './routes/schedule';
 import employeeRouter from './routes/employee';
 import teamRouter from './routes/team';
 import alertRouter from './routes/alert';
+import questionRouter from './routes/question';
+import zoneRouter from './routes/zone';
 
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -47,6 +49,8 @@ app.use('/schedule',scheduleRouter);
 app.use('/employee',employeeRouter);
 app.use('/team',teamRouter);
 app.use('/alert',alertRouter);
+app.use('/question',questionRouter);
+app.use('/zone',zoneRouter)
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server is running on http://localhost:${PORT}`);

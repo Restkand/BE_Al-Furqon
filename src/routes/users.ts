@@ -5,7 +5,7 @@ const router = Router();
 
 router.get('/', UserControllers.listUser);
 router.post('/create',UserControllers.createUser);
-router.post('/update',UserControllers.update);
-router.delete('/delete/:id',UserControllers.deleteUser)
+router.post('/update',UserControllers.updateUser);
+router.post('/delete',UserControllers.deleteUser)
 
 export default router

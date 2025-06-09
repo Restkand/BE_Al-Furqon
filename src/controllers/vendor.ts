@@ -1,25 +1,25 @@
+import { Request, Response } from "express";
 import * as model from "../models/vendor";
 // import {getListVendor} from "../models/vendor"
 import { sendMessageStatus, sendStatus } from "../utils/responseHelper";
-import express from "express";
 
 export const listVendor = async(
-    req: express.Request,
-    res: express.Response
+    req: Request,
+    res: Response
 ) => {
     try {
         const vendor = await model.getListVendor()
 
-        res.json(vendor)
+        res.status(200).json(vendor)
     } catch (error) {
         console.error("Error creating vendor:", error);
-        return res.status(500).json({ error: "Internal Server Error" });
+        res.status(500).json({ error: "Internal Server Error" });
     }
 }
 
 export const listVendorID = async(
-  req: express.Request,
-  res: express.Response
+  req: Request,
+  res: Response
 ) => {
   try {
     const {
@@ -30,15 +30,15 @@ export const listVendorID = async(
         res.json(vendor)
   } catch (error) {
     console.error("Error creating vendor:", error);
-    return res.status(500).json({ error: "Internal Server Error" });
+     res.status(500).json({ error: "Internal Server Error" });
   }
  
 
 }
 
 export const createVendor = async (
-    req: express.Request,
-    res: express.Response
+    req: Request,
+    res: Response
 ) => {
   try {
     const {
@@ -58,20 +58,25 @@ export const createVendor = async (
       updated_by
     );
 
-    if (result > 0) {
-      return res.status(200).json(sendMessageStatus("Vendor Successfully Created", 200));
-    } else {
-      return res.status(400).json(sendMessageStatus("Failed To Create Vendor",404));
-    }
-  } catch (error) {
+    res.status(200).json({
+      success: true,
+      message: "Success Insert Vendor",
+      data: result
+    })
+
+  } catch (error: any) {
     console.error("Error creating vendor:", error);
-    return res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({ 
+      success: false,
+      message: "Internal Server Error" ,
+      error: error.message
+    });
   }
 };
 
 export const updateVendor = async(
-  req: express.Request,
-  res: express.Response
+  req: Request,
+  res: Response
 )=>{
   
   try {
@@ -88,44 +93,47 @@ export const updateVendor = async(
       updated_by,
       id
     )
-    if (vendor > 0) {
-      return res.status(200).json(sendStatus('Success Update Vendor'))
-    }else{
-      return res.status(400).json(sendStatus('Failed Update Vendor'))
-    }
-  } catch (error) {
+    res.status(200).json({
+      success: true,
+      message: "Success Update Vendor",
+      data: vendor
+    })
+  } catch (error:any) {
     console.error("Error creating vendor:", error);
-    return res.status(500).json({ error: "Internal Server Error" });
+     res.status(500).json({ 
+      success: false,
+      message: "Internal Server Error" ,
+      error: error.message
+     });
   }
 }
 
 export const delVendor = async (
-    req: express.Request,
-    res: express.Response
+    req: Request,
+    res: Response
 ) => {
-  console.log('Received Headers:', req.headers);
-  console.log('Received Body:', req.body);
     try {
         const {
-            id
-        } = req.params
-        const {
+          id,
           updated_by
         }= req.body
         if (!id) {
-            return res.status(400).json({ message: "Missing user ID" });
+             res.status(400).json({ message: "Missing user ID" });
           }
 
         const result = await model.deleteVndr(id,updated_by)
-        if (result > 0) {
-            return res.status(200).json(sendStatus("Success delete user"))
-        }else{
-            return res.status(400).json(sendStatus("Failed Delete User"))
-        
-        }
-    } catch (error) {
+        res.status(200).json({
+          success: true,
+          message: "Success Delete Vendor",
+          data: result
+        })
+    } catch (error: any) {
         console.log(error);
-        res.status(500).json({ error: 'Failed to fetch users' });
+        res.status(500).json({ 
+          success: false,
+          message: "Internal Server Error" ,
+          error: error.message
+         });
     }
 }
 

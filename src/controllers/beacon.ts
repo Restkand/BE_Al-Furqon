@@ -1,131 +1,112 @@
 import * as model from "../models/beacon";
-import { sendStatus } from "../utils/responseHelper";
-import express from "express";
+import { Request, Response } from "express";
+import { generateBeaconID } from "../utils/tools";
 
-export const listBeac = async(
-    req: express.Request,
-    res: express.Response
-) => {
-    try {
-        const beacon = await model.getListBeacon()
+export const listBeac = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const beacon = await model.getListBeacon();
 
-        res.json(beacon)
-    } catch (error) {
-        console.error("Error creating beacon:", error);
-        return res.status(500).json({ error: "Internal Server Error" });
-    }
-}
+    res.status(200).json(beacon);
+  } catch (error) {
+    console.error("Error creating beacon:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
 
-export const createBeac = async (
-    req: express.Request,
-    res: express.Response
-) => {
+export const createBeac = async (req: Request, res: Response) => {
   try {
     const {
-        beaconCode,
-        site,
-        name,
-        employee,
-        beaconMacAddr,
-        beaconBattery,
-        BeaconBatteryCreat,
-        status,
-        created_by ,
-        updated_by
+      site,
+      name,
+      beaconMacAddr,
+      beaconBattery,
+      BeaconBatteryCreat,
+      created_by,
+      updated_by,
     } = req.body;
 
+    const beaconCode = await generateBeaconID();
+
     const result = await model.insertBeacon(
-        beaconCode,
-        site,
-        name,
-        employee,
-        beaconMacAddr,
-        beaconBattery,
-        BeaconBatteryCreat,
-        status,
-        created_by ,
-        updated_by
+      beaconCode,
+      site,
+      name,
+      beaconMacAddr,
+      beaconBattery,
+      BeaconBatteryCreat,
+      created_by,
+      updated_by
     );
 
     res.status(200).json({
       success: true,
-      message: 'Success Add Gateway',
-      data: result
-  })
-  } catch (error) {
+      message: "Success Add Beacon",
+      data: result,
+    });
+  } catch (error: any) {
     console.error("Error creating beacon:", error);
-    return res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({
+      success: false,
+      message: "Error Fetch Insert",
+      error: error.message,
+    });
   }
 };
 
-export const updateBeac = async(
-  req: express.Request,
-  res: express.Response
-)=>{
-  
+export const updateBeac = async (req: Request, res: Response) => {
   try {
     const {
-        site,
-        name,
-        employee,
-        beaconMacAddr,
-        beaconBattery,
-        BeaconBatteryCreat,
-        status , 
-        updated_by , 
-        id
-    } = req.body
+      site,
+      name,
+      beaconMacAddr,
+      beaconBattery,
+      BeaconBatteryCreat,
+      status,
+      updated_by,
+      id,
+    } = req.body;
 
     const vendor = await model.updateBeacon(
-        site,
-        name,
-        employee,
-        beaconMacAddr,
-        beaconBattery,
-        BeaconBatteryCreat,
-        status , 
-        updated_by , 
-        id
-    )
-    if (vendor > 0) {
-      return res.status(200).json(sendStatus('Success Update Beacon'))
-    }else{
-      return res.status(400).json(sendStatus('Failed Update Beacon'))
-    }
-  } catch (error) {
+      site,
+      name,
+      beaconMacAddr,
+      beaconBattery,
+      BeaconBatteryCreat,
+      status,
+      updated_by,
+      id
+    );
+    res.status(200).json({
+      success: true,
+      message: "Success Update Beacon",
+      data: vendor,
+    });
+  } catch (error: any) {
     console.error("Error creating beacon:", error);
-    return res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({
+      success: false,
+      message: "Error Fetch Insert",
+      error: error.message,
+    });
   }
-}
+};
 
-export const delBeac = async (
-    req: express.Request,
-    res: express.Response
-) => {
-  console.log('Received Headers:', req.headers);
-  console.log('Received Body:', req.body);
-    try {
-        const {
-            id
-        } = req.params
-        const {
-          updated_by
-        }= req.body
-        if (!id) {
-            return res.status(400).json({ message: "Missing user ID" });
-          }
+export const deleteBeac = async (req: Request, res: Response) => {
+  try {
+    const { updated_by, id } = req.body;
 
-        const result = await model.deleteBeacon(id,updated_by)
-        if (result > 0) {
-            return res.status(200).json(sendStatus("Success delete user"))
-        }else{
-            return res.status(400).json(sendStatus("Failed Delete User"))
-        
-        }
-    } catch (error) {
-        console.log(error);
-        res.status(500).json({ error: 'Failed to fetch users' });
-    }
-}
-
-
+    const vendor = await model.deleteBeacon(updated_by, id);
+    res.status(200).json({
+      success: true,
+      message: "Success Delete Beacon",
+      data: vendor,
+    });
+  } catch (error: any) {
+    console.error("Error delete beacon:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error Fetch Delete",
+      error: error.message,
+    });
+  }
+};

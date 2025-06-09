@@ -7,6 +7,6 @@ router.get('/', VendorControllers.listVendor);
 router.get('/detail/:id', VendorControllers.listVendorID);
 router.post('/create',VendorControllers.createVendor);
 router.post('/update',VendorControllers.updateVendor);
-router.delete('/delete/:id',VendorControllers.delVendor)
+router.post('/delete',VendorControllers.delVendor)
 
 export default router

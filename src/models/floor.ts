@@ -22,11 +22,20 @@ export const getListFloor = async()=>{
 
 export const insertFloor = async(floorID: string,site : string,nama:string,area:string, status: string,created_by: string,updated_by:string,filename:string)=>{
     try {
-       const result = await prisma.$executeRaw`
-        INSERT INTO "ms_floor" (floor_id,siteid,floor_name,filename,status,created_by,created_at,updated_by,updated_at,floor_area)
-        VALUES (${floorID},${site},${nama},${filename},${status},${created_by},NOW(),${updated_by},NOW(),${area})
-        `
-        return result;
+        return await prisma.ms_floor.create({
+            data:{
+                floor_id: floorID,
+                siteid: site,
+                floor_name: nama,
+                filename: filename,
+                status: status,
+                floor_area: area,
+                created_by: created_by,
+                created_at: new Date(),
+                updated_by: updated_by,
+                updated_at: new Date()
+            }
+        })
     } catch (error) {
         console.error('Failed to create vendor:', error);
         throw error;
@@ -78,16 +87,18 @@ export const getMapFloorByID = async (id:string) => {
 export const updateFl = async(vendorName:string,status: string, updated_by: string, id:string)=>{
     try {
         const idAsNumber = Number(id);
-        const result = await prisma.$executeRaw`
-        update "ms_vendor" 
-        SET 
-        vendor_name = ${vendorName},
-        status = ${status},
-        updated_by = ${updated_by},
-        updated_at = NOW()
-        WHERE vendorid = ${idAsNumber}
-        `
-        return result
+        return await prisma.ms_vendor.update({
+            where:{
+                id: idAsNumber
+            },
+            data:{
+                vendor_name: vendorName,
+                status: status,
+                updated_by: updated_by,
+                updated_at: new Date()
+            }
+        })
+       
     } catch (error) {
         console.error('Failed to create vendor:', error);
         throw error;
@@ -97,10 +108,17 @@ export const updateFl = async(vendorName:string,status: string, updated_by: stri
 export const deleteFl = async(id:string,updated_by:string) =>{
     try {
         const idAsNumber = Number(id);
-        const result = await prisma.$executeRaw`
-        Update "ms_vendor" set status='I',updated_by=${updated_by},updated_at=NOW() WHERE vendorid=${idAsNumber}
-        `
-        return result
+        return await prisma.ms_floor.update({
+            where:{
+                id: idAsNumber,
+            },
+            data:{
+                status: "X",
+                updated_by: updated_by,
+                updated_at: new Date()
+            }
+        })
+        
     } catch (error) {
         console.error('Failed to create vendor:', error);
         throw error;

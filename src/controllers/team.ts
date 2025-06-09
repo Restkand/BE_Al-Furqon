@@ -1,10 +1,10 @@
-import express from "express";
+import express, { Request, Response } from "express";
 import * as model from "../models/team";
 import { generateTeamID } from "../utils/tools";
 
 export const getListTeam = async(
-    req: express.Request,
-    res: express.Response
+    req:Request,
+    res: Response
 ) => {
     try {
         const {
@@ -14,14 +14,14 @@ export const getListTeam = async(
         res.status(200).json(listTeams)
     } catch (error) {
         console.error("Error creating floor:", error);
-        return res.status(500).json({ error: "Internal Server Error" });
+        res.status(500).json({ error: "Internal Server Error" });
     }
 }
 
 
 export const insertTeam = async(
-    req: express.Request,
-    res: express.Response
+    req: Request,
+    res: Response
 ) =>{
     try {
         const {
@@ -50,6 +50,7 @@ export const insertTeam = async(
             data: result
         })
     } catch (error) {
-        
+        console.error("Error creating floor:", error);
+        res.status(500).json({ error: "Internal Server Error" });
     }
 }

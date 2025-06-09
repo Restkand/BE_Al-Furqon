@@ -44,11 +44,23 @@ export const listGatewayByFloor = async (floorid: string, site:string) => {
 
 export const insertGateway = async(gateway_id:string,site:string,name:string,floor:string, gatewayMacAddr:string,ipAddr:string,x_coordinate:any,y_coordinate:any,status: string,created_by: string,updated_by:string)=>{
     try {
-       const result = await prisma.$executeRaw`
-        INSERT INTO "ms_gateway" (gateway_id,siteid,gateway_name,floor_id,gateway_mac_addr,ip_address,x_percent,y_percent,status,created_by,created_at,updated_by,updated_at)
-        VALUES (${gateway_id},${site},${name},${floor},${gatewayMacAddr},${ipAddr},${x_coordinate},${y_coordinate},${status},${created_by},NOW(),${updated_by},NOW())
-        `
-        return result;
+        return await prisma.ms_gateway.create({
+            data:{
+                gateway_id: gateway_id,
+                siteid: site,
+                gateway_name: name,
+                floor_id: floor,
+                gateway_mac_addr: gatewayMacAddr,
+                ip_address: ipAddr,
+                x_percent: x_coordinate,
+                y_percent: y_coordinate,
+                status: status,
+                created_by: created_by,
+                created_at: new Date(),
+                updated_by: updated_by,
+                updated_at: new Date()
+            }
+        })
     } catch (error) {
         console.error('Failed to create gateway:', error);
         throw error;
@@ -58,20 +70,22 @@ export const insertGateway = async(gateway_id:string,site:string,name:string,flo
 export const updateGateway = async(site:string,name:string,floor:string, gatewayMacAddr:string,ipAddr:string,status: string,updated_by:string, id:string)=>{
     try {
         const idAsNumber = Number(id);
-        const result = await prisma.$executeRaw`
-        update "ms_beacon" 
-        SET 
-        siteid =${site},
-        gateway_name = ${name},
-        floor_id = ${floor},
-        gateway_mac_addr = ${gatewayMacAddr},
-        ip_address = ${ipAddr},
-        status = ${status},
-        updated_by = ${updated_by},
-        updated_at = NOW()
-        WHERE id = ${idAsNumber}
-        `
-        return result
+        return await prisma.ms_gateway.update({
+            where:{
+                id: idAsNumber,
+            },
+            data:{
+                siteid: site,
+                gateway_name: name,
+                floor_id: floor,
+                gateway_mac_addr: gatewayMacAddr,
+                ip_address: ipAddr,
+                status: status,
+                updated_by: updated_by,
+                updated_at: new Date()
+
+            }
+        })
     } catch (error) {
         console.error('Failed to create beacon:', error);
         throw error;
@@ -81,19 +95,34 @@ export const updateGateway = async(site:string,name:string,floor:string, gateway
 export const deleteGateway = async(id:string,updated_by:string) =>{
     try {
         const idAsNumber = Number(id);
-        const result = await prisma.$executeRaw`
-        Update "ms_gateway" set status='I',updated_by=${updated_by},updated_at=NOW() WHERE id=${idAsNumber}
-        `
-        return result
+        return await prisma.ms_gateway.update({
+            where:{
+                id: idAsNumber,
+            },
+            data:{
+                status: 'X',
+                updated_by: updated_by,
+                updated_at: new Date()
+            }
+        })
     } catch (error) {
         console.error('Failed to create beacon:', error);
         throw error;
     }
 }
 
-export const getListGatewayByRoute = async(routeid:any) => {
+type JoinedGatewayRoute = {
+    id: string,
+    gatewayid: string,
+    name: string,
+    x_coordinate: any,
+    y_coordinate:any,
+    seq: any
+}
+export const getListGatewayByRoute = async(routeid:any):Promise<JoinedGatewayRoute[]> => {
     try {
-        const result = await prisma.$queryRaw`
+        
+        const result = await prisma.$queryRaw<JoinedGatewayRoute[]>`
         select a.id, 
         a.gateway_id as gatewayid, 
         gateway_name as name, 

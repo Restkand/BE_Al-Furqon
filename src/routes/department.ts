@@ -6,6 +6,6 @@ const router = Router();
 router.get('/', DepartControllers.listDepartment);
 router.post('/create',DepartControllers.createDepartment);
 router.post('/update',DepartControllers.updateDepartment);
-router.delete('/delete/:id',DepartControllers.delDepartment)
+router.post('/delete',DepartControllers.delDepartment)
 
 export default router

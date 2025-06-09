@@ -39,17 +39,19 @@ export const insertDepart = async(departmentCode : string,departmentName : strin
 export const updateDepart = async(departmentCode : string,departmentName : string,status: string, updated_by: string, id:string)=>{
     try {
         const idAsNumber = Number(id);
-        const result = await prisma.$executeRaw`
-        update "ms_department" 
-        SET 
-        department_id = ${departmentCode},
-        department_name = ${departmentName},
-        status = ${status},
-        updated_by = ${updated_by},
-        updated_at = NOW()
-        WHERE vendorid = ${idAsNumber}
-        `
-        return result
+        return await prisma.ms_department.update({
+            where:{
+                id: idAsNumber
+            },
+            data:{
+                department_id: departmentCode,
+                department_name: departmentName,
+                status: status,
+                updated_by: updated_by,
+                updated_at: new Date()
+            }
+        })
+        
     } catch (error) {
         console.error('Failed to create department:', error);
         throw error;
@@ -59,10 +61,16 @@ export const updateDepart = async(departmentCode : string,departmentName : strin
 export const deleteDepart = async(id:string,updated_by:string) =>{
     try {
         const idAsNumber = Number(id);
-        const result = await prisma.$executeRaw`
-        Update "ms_department" set status='I',updated_by=${updated_by},updated_at=NOW() WHERE vendorid=${idAsNumber}
-        `
-        return result
+        return await prisma.ms_department.update({
+            where:{
+                id: idAsNumber
+            },
+            data:{
+                status: "X",
+                updated_by: updated_by,
+                updated_at: new Date()
+            }
+        })
     } catch (error) {
         console.error('Failed to create department:', error);
         throw error;
