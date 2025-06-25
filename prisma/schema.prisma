@@ -16,18 +16,19 @@ model ble_logs {
 }
 
 model ms_alert {
-  id          Int       @id @default(autoincrement())
-  trackid     String?   @db.VarChar(25)
-  vendorid    String?   @db.VarChar(25)
-  employeeid  String?   @db.VarChar(25)
-  gatewayid   String?   @db.VarChar(25)
-  reason      String?   @db.VarChar(100)
-  alerttype   String?   @db.VarChar(50)
-  causetypeid String?   @db.VarChar(25)
-  created_by  String?   @db.VarChar(50)
-  created_at  DateTime? @default(now()) @db.Timestamp(6)
-  updated_by  String?   @db.VarChar(50)
-  updated_at  DateTime? @default(now()) @db.Timestamp(6)
+  id             Int       @id @default(autoincrement())
+  trackid        String?   @db.VarChar(25)
+  vendorid       String?   @db.VarChar(25)
+  employeeid     String?   @db.VarChar(25)
+  gatewayid      String?   @db.VarChar(25)
+  reason         String?   @db.VarChar(100)
+  alerttype      String?   @db.VarChar(50)
+  alert_reasonid String?   @db.VarChar(25)
+  created_by     String?   @db.VarChar(50)
+  created_at     DateTime? @default(now()) @db.Timestamp(6)
+  updated_by     String?   @db.VarChar(50)
+  updated_at     DateTime? @default(now()) @db.Timestamp(6)
+  alert_time     String?   @db.VarChar(50)
 }
 
 model ms_alerttype {
@@ -52,6 +53,7 @@ model ms_beacon {
   created_at        DateTime? @default(now()) @db.Timestamp(6)
   updated_by        String?   @db.VarChar(50)
   updated_at        DateTime? @default(now()) @db.Timestamp(6)
+  beacon_area       String?   @db.VarChar(20)
 }
 
 model ms_department {
@@ -112,6 +114,7 @@ model ms_gateway {
   created_at       DateTime? @default(now()) @db.Timestamp(6)
   updated_by       String?   @db.VarChar(50)
   updated_at       DateTime? @default(now()) @db.Timestamp(6)
+  gateway_area     String?   @db.VarChar(20)
 }
 
 model ms_schcontrols {
@@ -160,6 +163,8 @@ model ms_track {
   created_at  DateTime? @default(now()) @db.Timestamp(6)
   updated_by  String?   @db.VarChar(50)
   updated_at  DateTime? @default(now()) @db.Timestamp(6)
+  floor       String?   @db.VarChar(20)
+  status      String?   @db.VarChar(2)
 }
 
 model ms_vendor {
@@ -296,6 +301,8 @@ model ms_alert_reason {
   created_at  DateTime? @default(now()) @db.Timestamp(6)
   updated_by  String?   @db.VarChar(50)
   updated_at  DateTime? @default(now()) @db.Timestamp(6)
+  point_plus  String?   @db.VarChar(5)
+  point_min   String?   @db.VarChar(5)
 }
 
 model ms_qre {
@@ -375,4 +382,117 @@ model ms_qre_detail_quest {
   created_at     DateTime? @default(now()) @db.Timestamp(6)
   updated_by     String?   @db.VarChar(50)
   updated_at     DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model ms_absent_stat {
+  id          Int       @id @default(autoincrement())
+  absent_name String?   @db.VarChar(50)
+  created_by  String?   @db.VarChar(50)
+  created_at  DateTime? @default(now()) @db.Timestamp(6)
+  updated_by  String?   @db.VarChar(50)
+  updated_at  DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model ms_alert_subtype {
+  id                 Int       @id @default(autoincrement())
+  alert_subtype_name String?   @db.VarChar(50)
+  created_by         String?   @db.VarChar(50)
+  created_at         DateTime? @default(now()) @db.Timestamp(6)
+  updated_by         String?   @db.VarChar(50)
+  updated_at         DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model ms_legend {
+  id          Int       @id @default(autoincrement())
+  legend_name String?   @db.VarChar(50)
+  created_by  String?   @db.VarChar(50)
+  created_at  DateTime? @default(now()) @db.Timestamp(6)
+  updated_by  String?   @db.VarChar(50)
+  updated_at  DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model ms_legend_detail {
+  id         Int       @id @default(autoincrement())
+  legend_id  Int?
+  status     String?   @db.VarChar(30)
+  performa   String?   @db.VarChar(10)
+  created_by String?   @db.VarChar(50)
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  updated_by String?   @db.VarChar(50)
+  updated_at DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model ms_menu {
+  id         Int       @id @default(autoincrement())
+  menu_name  String?   @db.VarChar(50)
+  created_by String?   @db.VarChar(50)
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  updated_by String?   @db.VarChar(50)
+  updated_at DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model ms_privilage {
+  id              Int       @id @default(autoincrement())
+  permission_name String?   @db.VarChar(50)
+  created_by      String?   @db.VarChar(50)
+  created_at      DateTime? @default(now()) @db.Timestamp(6)
+  updated_by      String?   @db.VarChar(50)
+  updated_at      DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model ms_privilage_detail {
+  id           Int       @id @default(autoincrement())
+  privilage_id Int?
+  role         String?   @db.VarChar(25)
+  created_by   String?   @db.VarChar(50)
+  created_at   DateTime? @default(now()) @db.Timestamp(6)
+  updated_by   String?   @db.VarChar(50)
+  updated_at   DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model ms_shift {
+  id         Int       @id @default(autoincrement())
+  shift_name String?   @db.VarChar(50)
+  start_time DateTime? @default(now()) @db.Timestamp(6)
+  end_time   DateTime? @default(now()) @db.Timestamp(6)
+  created_by String?   @db.VarChar(50)
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  updated_by String?   @db.VarChar(50)
+  updated_at DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model ms_status_info {
+  id          Int       @id @default(autoincrement())
+  status_name String?   @db.VarChar(25)
+  created_by  String?   @db.VarChar(50)
+  created_at  DateTime? @default(now()) @db.Timestamp(6)
+  updated_by  String?   @db.VarChar(50)
+  updated_at  DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model ms_track_model {
+  id          Int       @id @default(autoincrement())
+  track_model String?   @db.VarChar(50)
+  created_by  String?   @db.VarChar(50)
+  created_at  DateTime? @default(now()) @db.Timestamp(6)
+  updated_by  String?   @db.VarChar(50)
+  updated_at  DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model ms_track_tolerance {
+  id         Int       @id @default(autoincrement())
+  tolerance  DateTime? @db.Timestamp(6)
+  created_by String?   @db.VarChar(50)
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  updated_by String?   @db.VarChar(50)
+  updated_at DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model ms_track_type {
+  id         Int       @id @default(autoincrement())
+  track_type String?   @db.VarChar(50)
+  created_by String?   @db.VarChar(50)
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  updated_by String?   @db.VarChar(50)
+  updated_at DateTime? @default(now()) @db.Timestamp(6)
 }

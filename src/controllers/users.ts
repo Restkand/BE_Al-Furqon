@@ -1,6 +1,7 @@
 import * as model from "../models/users";
 import bcrypt from "bcrypt";
 import { Request, Response } from "express";
+import jwt from "jsonwebtoken";
 
 export const listUser = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -108,6 +109,32 @@ export const deleteUser = async (req: Request, res: Response) => {
       message: "Success Delete User",
       data: result,
     });
+  } catch (error: any) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: "Error Fetch Insert",
+      error: error.message,
+    });
+  }
+};
+
+export const login = async (req: Request, res: Response): Promise<any> => {
+  try {
+    const { email, password } = req.body;
+    const user = await model.loginUser(email, password);
+    if (!user || !user.email || !user.id) {
+      return res.status(401).json({ message: "Invalid email or password" });
+    }
+    const token = jwt.sign(
+      { userId: user.id, email: user.email },
+      process.env.JWT_SECRET as string,
+      {
+        expiresIn: "1h",
+      }
+    );
+
+    res.json({ token, user });
   } catch (error: any) {
     console.log(error);
     res.status(500).json({

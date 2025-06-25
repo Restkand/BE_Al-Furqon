@@ -1,4 +1,5 @@
 import prisma from "./prisma";
+import bcrypt from "bcrypt";
 
 export const getlistUser = async () => {
   return await prisma.users.findMany({
@@ -106,4 +107,18 @@ export const deleteUsr = async (id: string, updated_user: string) => {
     console.error("Failed to update user:", error);
     throw error;
   }
+};
+
+export const loginUser = async (email: string, password: string) => {
+  const user = await prisma.users.findFirst({
+    where: { email },
+  });
+  if (!user || !user.password) return null;
+  const isMatch = await bcrypt.compare(password, user.password);
+  if (!isMatch) return null;
+  return {
+    id: user.id,
+    email: user.email,
+    username: user.username, // if you have it
+  };
 };
