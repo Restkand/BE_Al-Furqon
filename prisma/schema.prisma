@@ -10,21 +10,26 @@ datasource db {
 
 // User Model untuk Authentication
 model User {
-  id        String    @id @default(cuid())
-  email     String    @unique
-  password  String
-  name      String
-  role      Role      @default(user)
-  avatar    String?
-  isActive  Boolean   @default(true)
-  lastLogin DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id           String    @id @default(cuid())
+  email        String    @unique
+  username     String    @unique
+  password     String
+  name         String
+  role         Role      @default(user)
+  permissions  Json      @default("[]")
+  avatar       String?
+  isActive     Boolean   @default(true)
+  lastLogin    DateTime?
+  loginCount   Int       @default(0)
+  refreshToken String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   @@map("users")
 }
 
 enum Role {
+  super_admin
   admin
   editor
   user

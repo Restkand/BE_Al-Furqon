@@ -2,6 +2,7 @@ import express from 'express';
 import homeRoutes from './api/home';
 import statisticsRoutes from './api/statistics';
 import mainRoutes from './api/main';
+import adminRoutes from './api/admin';
 
 const router = express.Router();
 
@@ -140,6 +141,7 @@ router.get('/feedback', (req, res, next) => {
 // ===== ORIGINAL ROUTES =====
 router.use('/home', homeRoutes);
 router.use('/statistics', statisticsRoutes);
+router.use('/admin', adminRoutes);
 
 // Import routes utama (articles, donations, news CRUD) - must be last
 router.use('/', mainRoutes);
