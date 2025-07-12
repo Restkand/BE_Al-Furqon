@@ -2,6 +2,7 @@ export interface RegisterRequest {
   email: string;
   password: string;
   name: string;
+  username?: string;
 }
 
 export interface LoginRequest {
@@ -15,6 +16,7 @@ export interface AuthResponse {
     id: string;
     email: string;
     name: string;
-    role: 'admin' | 'editor' | 'user';
+    username?: string;
+    role: 'super_admin' | 'admin' | 'editor' | 'user';
   };
 }

@@ -14,7 +14,7 @@ const passwordStrengthRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
 export const AuthController = {
   register: async (req: Request<{}, {}, RegisterRequest>, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const { email, password, name } = req.body;
+      const { email, password, name, username } = req.body;
 
       if (!passwordStrengthRegex.test(password)) {
         throw new AppError(400, 'Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one number');
@@ -28,17 +28,30 @@ export const AuthController = {
         throw new AppError(400, 'Email already registered');
       }
 
+      // Check if username already exists (if provided)
+      if (username) {
+        const existingUsername = await prisma.user.findUnique({
+          where: { username }
+        });
+
+        if (existingUsername) {
+          throw new AppError(400, 'Username already taken');
+        }
+      }
+
       const hashedPassword = await bcrypt.hash(password, 10);
       const user = await prisma.user.create({
         data: {
           email,
           password: hashedPassword,
-          name
+          name,
+          username: username || email.split('@')[0] // Generate username from email if not provided
         },
         select: {
           id: true,
           email: true,
           name: true,
+          username: true,
           role: true
         }
       });
@@ -71,6 +84,7 @@ export const AuthController = {
           email: true,
           password: true,
           name: true,
+          username: true,
           role: true
         }
       });

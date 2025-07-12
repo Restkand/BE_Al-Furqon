@@ -25,6 +25,9 @@ model User {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
+  // Relations
+  sessions UserSession[]
+
   @@map("users")
 }
 
@@ -253,4 +256,159 @@ enum EventType {
   donation_view
   download
   share
+  user_registration
+  admin_login
+  donation_payment
+}
+
+// Dashboard Cache Model for performance
+model DashboardCache {
+  id        String   @id @default(cuid())
+  cacheKey  String   @unique
+  cacheData Json
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([cacheKey])
+  @@index([expiresAt])
+  @@map("dashboard_cache")
+}
+
+// System Settings Model
+model SystemSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  type      String   @default("string") // string, number, boolean, json
+  category  String   @default("general")
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category])
+  @@index([isActive])
+  @@map("system_settings")
+}
+
+// Activity Logs Model for audit trail
+model ActivityLog {
+  id          String   @id @default(cuid())
+  userId      String?
+  userEmail   String?
+  action      String
+  resource    String?
+  resourceId  String?
+  oldValues   Json?
+  newValues   Json?
+  ipAddress   String?
+  userAgent   String?
+  description String?
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([resource])
+  @@index([createdAt])
+  @@index([userId, action])
+  @@map("activity_logs")
+}
+
+// Visitor Tracking Model
+model VisitorTracking {
+  id              String    @id @default(cuid())
+  visitorId       String // unique visitor identifier
+  ipAddress       String
+  userAgent       String
+  referrerUrl     String?
+  landingPage     String
+  country         String?
+  city            String?
+  device          String?
+  browser         String?
+  os              String?
+  sessionStart    DateTime
+  sessionEnd      DateTime?
+  sessionDuration Int? // in seconds
+  pageViews       Int       @default(1)
+  isUnique        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([visitorId])
+  @@index([sessionStart])
+  @@index([ipAddress])
+  @@index([isUnique])
+  @@index([country])
+  @@map("visitor_tracking")
+}
+
+// Daily Stats Model for aggregated data
+model DailyStats {
+  id                  String   @id @default(cuid())
+  date                DateTime @unique
+  totalVisitors       Int      @default(0)
+  uniqueVisitors      Int      @default(0)
+  totalPageViews      Int      @default(0)
+  totalArticleViews   Int      @default(0)
+  totalDonations      Int      @default(0)
+  totalDonationAmount Float    @default(0)
+  totalNewsViews      Int      @default(0)
+  totalUsers          Int      @default(0)
+  newUsers            Int      @default(0)
+  bounceRate          Float    @default(0)
+  avgSessionDuration  Float    @default(0)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([date])
+  @@map("daily_stats")
+}
+
+// Monthly Stats Model for aggregated data
+model MonthlyStats {
+  id                  String   @id @default(cuid())
+  year                Int
+  month               Int
+  totalVisitors       Int      @default(0)
+  uniqueVisitors      Int      @default(0)
+  totalPageViews      Int      @default(0)
+  totalArticleViews   Int      @default(0)
+  totalDonations      Int      @default(0)
+  totalDonationAmount Float    @default(0)
+  totalNewsViews      Int      @default(0)
+  totalUsers          Int      @default(0)
+  newUsers            Int      @default(0)
+  bounceRate          Float    @default(0)
+  avgSessionDuration  Float    @default(0)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@unique([year, month])
+  @@index([year])
+  @@index([month])
+  @@map("monthly_stats")
+}
+
+// User Sessions Model
+model UserSession {
+  id        String    @id @default(cuid())
+  userId    String?
+  sessionId String    @unique
+  ipAddress String
+  userAgent String
+  isActive  Boolean   @default(true)
+  loginAt   DateTime  @default(now())
+  logoutAt  DateTime?
+  expiresAt DateTime
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([sessionId])
+  @@index([isActive])
+  @@index([expiresAt])
+  @@map("user_sessions")
 }

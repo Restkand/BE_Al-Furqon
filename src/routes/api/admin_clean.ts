@@ -2,7 +2,6 @@ import { Router } from 'express';
 import multer from 'multer';
 import path from 'path';
 import { AdminController } from '../../controllers/api/adminController';
-import { DashboardController } from '../../controllers/dashboardController';
 import { adminAuth, requireSuperAdmin, requireAnyAdmin } from '../../middleware/adminAuth';
 
 const router = Router();
@@ -56,11 +55,6 @@ router.post('/auth/logout-all', requireSuperAdmin, AdminController.logoutAllSess
 // ==================== DASHBOARD ====================
 
 router.get('/dashboard', requireAnyAdmin, AdminController.getDashboard);
-router.get('/dashboard/stats', requireAnyAdmin, DashboardController.getDashboardStats);
-router.get('/dashboard/summary', requireAnyAdmin, DashboardController.getDashboardSummary);
-router.get('/dashboard/activity', requireAnyAdmin, DashboardController.getRealtimeActivity);
-router.get('/dashboard/charts', requireAnyAdmin, DashboardController.getChartsData);
-router.post('/dashboard/stats/refresh', requireAnyAdmin, DashboardController.refreshDashboardCache);
 
 // ==================== ARTICLES MANAGEMENT ====================
 
