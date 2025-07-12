@@ -1,498 +1,251 @@
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "windows"]
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider = "sqlite"
+  url      = "file:./dev.db"
 }
 
-model ble_logs {
-  id           Int       @id @default(autoincrement())
-  mac          String?   @db.VarChar(17)
-  rssi         Int?
-  service_data String?
-  timestamp    DateTime? @db.Timestamp(6)
+// User Model untuk Authentication
+model User {
+  id        String    @id @default(cuid())
+  email     String    @unique
+  password  String
+  name      String
+  role      Role      @default(user)
+  avatar    String?
+  isActive  Boolean   @default(true)
+  lastLogin DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("users")
 }
 
-model ms_alert {
-  id             Int       @id @default(autoincrement())
-  trackid        String?   @db.VarChar(25)
-  vendorid       String?   @db.VarChar(25)
-  employeeid     String?   @db.VarChar(25)
-  gatewayid      String?   @db.VarChar(25)
-  reason         String?   @db.VarChar(100)
-  alerttype      String?   @db.VarChar(50)
-  alert_reasonid String?   @db.VarChar(25)
-  created_by     String?   @db.VarChar(50)
-  created_at     DateTime? @default(now()) @db.Timestamp(6)
-  updated_by     String?   @db.VarChar(50)
-  updated_at     DateTime? @default(now()) @db.Timestamp(6)
-  alert_time     String?   @db.VarChar(50)
+enum Role {
+  admin
+  editor
+  user
 }
 
-model ms_alerttype {
-  reason_type_id   Int       @id @default(autoincrement())
-  reason_type_name String?   @db.VarChar(100)
-  created_by       String?   @db.VarChar(50)
-  created_at       DateTime? @default(now()) @db.Timestamp(6)
-  updated_by       String?   @db.VarChar(50)
-  updated_at       DateTime? @default(now()) @db.Timestamp(6)
+// Articles Model (Artikel/Kegiatan)
+model Article {
+  id           String    @id @default(cuid())
+  title        String
+  slug         String    @unique
+  description  String?
+  content      String?
+  image        String?
+  category     Category
+  status       Status    @default(draft)
+  authorId     String?
+  authorName   String?
+  authorAvatar String?
+  publishedAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  views        Int       @default(0)
+  likes        Int       @default(0)
+  featured     Boolean   @default(false)
+  tags         Json?
+  metaData     Json?
+
+  @@index([category])
+  @@index([status])
+  @@index([featured])
+  @@index([publishedAt])
+  @@index([category, status, featured])
+  @@map("articles")
 }
 
-model ms_beacon {
-  id                Int       @id @default(autoincrement())
-  beacon_id         String?   @db.VarChar(25)
-  siteid            String?   @db.VarChar(5)
-  beacon_name       String?   @db.VarChar(100)
-  beacon_mac_addr   String?   @db.VarChar(25)
-  beacon_battery    Int?
-  beacon_battery_at DateTime? @db.Timestamp(6)
-  status            String?   @db.VarChar(1)
-  created_by        String?   @db.VarChar(50)
-  created_at        DateTime? @default(now()) @db.Timestamp(6)
-  updated_by        String?   @db.VarChar(50)
-  updated_at        DateTime? @default(now()) @db.Timestamp(6)
-  beacon_area       String?   @db.VarChar(20)
+enum Category {
+  kegiatan
+  berita
+  sumbangan
+  fasilitas
+  profil
 }
 
-model ms_department {
-  id              Int       @id @default(autoincrement())
-  department_id   String?   @db.VarChar(25)
-  department_name String?   @db.VarChar(100)
-  status          String?   @db.VarChar(1)
-  created_by      String?   @db.VarChar(50)
-  created_at      DateTime? @default(now()) @db.Timestamp(6)
-  updated_by      String?   @db.VarChar(50)
-  updated_at      DateTime? @default(now()) @db.Timestamp(6)
+enum Status {
+  published
+  draft
+  archived
 }
 
-model ms_employee {
-  id            Int       @id @default(autoincrement())
-  employee_id   String?   @db.VarChar(10)
-  siteid        String?   @db.VarChar(5)
-  employee_name String?   @db.VarChar(100)
-  department_id String?   @db.VarChar(25)
-  employee_type String?   @db.VarChar(25)
-  beacon_id     String?   @db.VarChar(25)
-  status        String?   @db.VarChar(1)
-  created_by    String?   @db.VarChar(50)
-  created_at    DateTime? @default(now()) @db.Timestamp(6)
-  updated_by    String?   @db.VarChar(50)
-  updated_at    DateTime? @default(now()) @db.Timestamp(6)
-  vendor_id     String?   @db.VarChar(20)
-  photo         String?   @db.VarChar(255)
-  emp_phone     String?   @db.VarChar(25)
+// Donations Model (Program Donasi)
+model Donation {
+  id              String         @id @default(cuid())
+  title           String
+  slug            String         @unique
+  description     String
+  detail          String?
+  image           String?
+  targetAmount    Float
+  collectedAmount Float          @default(0.00)
+  status          DonationStatus @default(active)
+  startDate       DateTime?
+  endDate         DateTime?
+  bankName        String?
+  accountNumber   String?
+  accountName     String?
+  qrisCode        String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  totalDonors     Int            @default(0)
+
+  transactions DonationTransaction[]
+
+  @@index([status])
+  @@index([targetAmount])
+  @@index([collectedAmount])
+  @@index([status, createdAt])
+  @@map("donations")
 }
 
-model ms_floor {
-  id         Int       @id @default(autoincrement())
-  floor_id   String?   @db.VarChar(5)
-  siteid     String?   @db.VarChar(5)
-  floor_name String?   @db.VarChar(100)
-  filename   String?   @db.VarChar(255)
-  status     String?   @db.VarChar(1)
-  created_by String?   @db.VarChar(50)
-  created_at DateTime? @default(now()) @db.Timestamp(6)
-  updated_by String?   @db.VarChar(50)
-  updated_at DateTime? @default(now()) @db.Timestamp(6)
-  floor_area String?   @db.VarChar(20)
+enum DonationStatus {
+  active
+  completed
+  suspended
 }
 
-model ms_gateway {
-  id               Int       @id @default(autoincrement())
-  gateway_id       String?   @db.VarChar(25)
-  siteid           String?   @db.VarChar(5)
-  gateway_name     String?   @db.VarChar(100)
-  floor_id         String?   @db.VarChar(5)
-  gateway_mac_addr String?   @db.VarChar(25)
-  ip_address       String?   @db.VarChar(50)
-  x_percent        Decimal?  @db.Decimal(5, 2)
-  y_percent        Decimal?  @db.Decimal(5, 2)
-  status           String?   @db.VarChar(1)
-  created_by       String?   @db.VarChar(50)
-  created_at       DateTime? @default(now()) @db.Timestamp(6)
-  updated_by       String?   @db.VarChar(50)
-  updated_at       DateTime? @default(now()) @db.Timestamp(6)
-  gateway_area     String?   @db.VarChar(20)
+// Donation Transactions Model
+model DonationTransaction {
+  id            String            @id @default(cuid())
+  donationId    String
+  donorName     String
+  amount        Float
+  email         String?
+  phone         String?
+  message       String?
+  isAnonymous   Boolean           @default(false)
+  paymentMethod PaymentMethod
+  status        TransactionStatus @default(pending)
+  transactionId String?           @unique
+  paymentUrl    String?
+  expiresAt     DateTime?
+  paidAt        DateTime?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  donation Donation @relation(fields: [donationId], references: [id], onDelete: Cascade)
+
+  @@index([donationId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([transactionId])
+  @@map("donation_transactions")
 }
 
-model ms_schcontrols {
-  id         Int       @id @default(autoincrement())
-  scheduleid String?   @db.VarChar(25)
-  created_by String?   @db.VarChar(50)
-  created_at DateTime? @default(now()) @db.Timestamp(6)
-  updated_by String?   @db.VarChar(50)
-  updated_at DateTime? @default(now()) @db.Timestamp(6)
-  employeeid String?   @db.VarChar(25)
+enum PaymentMethod {
+  bank_transfer
+  qris
+  ewallet
+  cash
 }
 
-model ms_schedule {
-  scheduleid           Int       @id @default(autoincrement())
-  schedule_name        String?   @db.VarChar(100)
-  schedule_description String?   @db.VarChar(50)
-  department_id        String?   @db.VarChar(5)
-  created_by           String?   @db.VarChar(50)
-  created_at           DateTime? @default(now()) @db.Timestamp(6)
-  updated_by           String?   @db.VarChar(50)
-  updated_at           DateTime? @default(now()) @db.Timestamp(6)
-  status               String?   @db.VarChar(2)
+enum TransactionStatus {
+  pending
+  paid
+  failed
+  cancelled
 }
 
-model ms_site {
-  siteid       Int       @id @default(autoincrement())
-  site_name    String?   @db.VarChar(100)
-  site_address String?   @db.VarChar(100)
-  site_cluster String?   @db.VarChar(50)
-  status       String?   @db.VarChar(1)
-  created_by   String?   @db.VarChar(50)
-  created_at   DateTime? @default(now()) @db.Timestamp(6)
-  updated_by   String?   @db.VarChar(50)
-  updated_at   DateTime? @default(now()) @db.Timestamp(6)
-  site_code    String?   @db.VarChar(15)
+// News Model
+model News {
+  id          String    @id @default(cuid())
+  title       String
+  slug        String    @unique
+  description String?
+  content     String?
+  image       String?
+  category    String    @default("umum")
+  priority    Priority  @default(medium)
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  authorId    String?
+  authorName  String?
+  views       Int       @default(0)
+  summary     String?
+  metaData    Json?
+
+  @@index([category])
+  @@index([priority])
+  @@index([publishedAt])
+  @@index([priority, publishedAt])
+  @@map("news")
 }
 
-model ms_track {
-  trackid     Int       @id @default(autoincrement())
-  siteid      String?   @db.VarChar(25)
-  gatewayid   String?   @db.VarChar(25)
-  track_name  String?   @db.VarChar(100)
-  track_start DateTime? @db.Timestamp(6)
-  track_end   DateTime? @db.Timestamp(6)
-  created_by  String?   @db.VarChar(50)
-  created_at  DateTime? @default(now()) @db.Timestamp(6)
-  updated_by  String?   @db.VarChar(50)
-  updated_at  DateTime? @default(now()) @db.Timestamp(6)
-  floor       String?   @db.VarChar(20)
-  status      String?   @db.VarChar(2)
+enum Priority {
+  high
+  medium
+  low
 }
 
-model ms_vendor {
-  id          Int       @id(map: "ms_vendor_new_pkey") @default(autoincrement())
-  vendor_id   String?   @db.VarChar(50)
-  vendor_name String?   @db.VarChar(100)
-  status      String?   @db.VarChar(2)
-  created_by  String?   @db.VarChar(50)
-  created_at  DateTime? @default(now()) @db.Timestamp(6)
-  updated_by  String?   @db.VarChar(50)
-  updated_at  DateTime? @default(now()) @db.Timestamp(6)
+// Navigation Menus Model
+model Menu {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String
+  icon        String?
+  orderIndex  Int      @default(0)
+  isActive    Boolean  @default(true)
+  parentId    String?
+  description String?
+  url         String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  parent   Menu?  @relation("MenuHierarchy", fields: [parentId], references: [id])
+  children Menu[] @relation("MenuHierarchy")
+
+  @@index([orderIndex])
+  @@index([isActive])
+  @@index([parentId])
+  @@map("menus")
 }
 
-model tr_ble_logs {
-  id          Int       @id @default(autoincrement())
-  gateway_mac String?   @db.VarChar(17)
-  gateway_ip  String?   @db.VarChar(45)
-  device_mac  String?   @db.VarChar(17)
-  rssi        Float?    @db.Real
-  distance    Float?    @db.Real
-  battery     Int?
-  temperature Float?    @db.Real
-  timestamp   DateTime? @db.Timestamp(6)
+// Site Statistics Model
+model SiteStatistic {
+  id          String   @id @default(cuid())
+  metricName  String
+  metricValue BigInt   @default(0)
+  metricDate  DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([metricName, metricDate])
+  @@index([metricName])
+  @@index([metricDate])
+  @@map("site_statistics")
 }
 
-model users {
-  id           Int       @id @default(autoincrement())
-  name         String?   @db.VarChar(100)
-  username     String?   @unique @db.VarChar(50)
-  password     String?   @db.VarChar(255)
-  email        String?   @db.VarChar(50)
-  role         String?   @db.VarChar(50)
-  status       String?   @db.Char(1)
-  created_user String?   @db.VarChar(50)
-  created_at   DateTime? @db.Timestamp(6)
-  updated_user String?   @db.VarChar(50)
-  updated_at   DateTime? @db.Timestamp(6)
-  site         String?   @db.VarChar(25)
+// Analytics Events Model
+model AnalyticsEvent {
+  id           String    @id @default(cuid())
+  eventType    EventType
+  resourceId   String?
+  resourceType String?
+  sessionId    String?
+  userAgent    String?
+  referrer     String?
+  ipAddress    String?
+  createdAt    DateTime  @default(now())
+  metadata     Json?
+
+  @@index([eventType])
+  @@index([resourceId])
+  @@index([createdAt])
+  @@index([resourceType, resourceId])
+  @@map("analytics_events")
 }
 
-model userslog {
-  id          Int       @id @default(autoincrement())
-  userid      String?   @db.VarChar(25)
-  user_do     String?   @db.VarChar(100)
-  user_login  DateTime? @default(now()) @db.Timestamp(6)
-  user_logout DateTime? @default(now()) @db.Timestamp(6)
-  created_by  String?   @db.VarChar(50)
-  created_at  DateTime? @default(now()) @db.Timestamp(6)
-  updated_by  String?   @db.VarChar(50)
-  updated_at  DateTime? @default(now()) @db.Timestamp(6)
-}
-
-model ms_route {
-  id         Int       @id(map: "ms_routenew_pkey") @default(autoincrement())
-  route_id   String?   @db.VarChar(50)
-  route_name String?   @db.VarChar(10)
-  created_by String?   @db.VarChar(50)
-  created_at DateTime? @default(now()) @db.Timestamp(6)
-  updated_by String?   @db.VarChar(50)
-  updated_at DateTime? @default(now()) @db.Timestamp(6)
-  status     String?   @db.VarChar(2)
-}
-
-model ms_route1 {
-  id         Int       @id(map: "ms_route_pkey") @default(autoincrement())
-  route_id   String?   @db.VarChar(50)
-  route_seq  String?   @db.VarChar(10)
-  gateway_id String?   @db.VarChar(10)
-  created_by String?   @db.VarChar(50)
-  created_at DateTime? @default(now()) @db.Timestamp(6)
-  updated_by String?   @db.VarChar(50)
-  updated_at DateTime? @default(now()) @db.Timestamp(6)
-  status     String?   @db.VarChar(2)
-  route_name String?   @db.VarChar(50)
-}
-
-model ms_route_detail {
-  id         Int       @id @default(autoincrement())
-  route_id   String?   @db.VarChar(50)
-  route_seq  String?   @db.VarChar(10)
-  gateway_id String?   @db.VarChar(50)
-  start_time DateTime? @db.Time(6)
-  end_time   DateTime? @db.Time(6)
-  created_by String?   @db.VarChar(50)
-  created_at DateTime? @default(now()) @db.Timestamp(6)
-  updated_by String?   @db.VarChar(50)
-  updated_at DateTime? @default(now()) @db.Timestamp(6)
-}
-
-model ms_schcontrols_detail {
-  id          Int       @id @default(autoincrement())
-  schedule_id String?   @db.VarChar(50)
-  set_id      Int?
-  track_id    String?   @db.VarChar(50)
-  sch_start   DateTime? @db.Timestamp(6)
-  sch_end     DateTime? @db.Timestamp(6)
-  status      String?   @db.VarChar(5)
-  created_by  String?   @db.VarChar(50)
-  created_at  DateTime? @default(now()) @db.Timestamp(6)
-  updated_by  String?   @db.VarChar(50)
-  updated_at  DateTime? @default(now()) @db.Timestamp(6)
-}
-
-model ms_batch_team {
-  id            Int       @id @default(autoincrement())
-  team_id       String?   @db.VarChar(50)
-  team_name     String?   @db.VarChar(50)
-  created_by    String?   @db.VarChar(50)
-  created_at    DateTime? @default(now()) @db.Timestamp(6)
-  updated_by    String?   @db.VarChar(50)
-  updated_at    DateTime? @default(now()) @db.Timestamp(6)
-  route_id      String?   @db.VarChar(50)
-  department_id String?   @db.VarChar(50)
-}
-
-model ms_batch_team_detail {
-  id          Int       @id @default(autoincrement())
-  team_id     String?   @db.VarChar(50)
-  employee_id String?   @db.VarChar(50)
-  gateway_id  String?   @db.VarChar(50)
-  status      String?   @db.VarChar(5)
-  created_by  String?   @db.VarChar(50)
-  created_at  DateTime? @default(now()) @db.Timestamp(6)
-  updated_by  String?   @db.VarChar(50)
-  updated_at  DateTime? @default(now()) @db.Timestamp(6)
-}
-
-model ms_alert_reason {
-  id          Int       @id @default(autoincrement())
-  reason_id   String?   @db.VarChar(50)
-  reason_name String?   @db.VarChar(50)
-  status      String?   @db.VarChar(5)
-  created_by  String?   @db.VarChar(50)
-  created_at  DateTime? @default(now()) @db.Timestamp(6)
-  updated_by  String?   @db.VarChar(50)
-  updated_at  DateTime? @default(now()) @db.Timestamp(6)
-  point_plus  String?   @db.VarChar(5)
-  point_min   String?   @db.VarChar(5)
-}
-
-model ms_qre {
-  id         Int       @id @default(autoincrement())
-  qre_id     String?   @db.VarChar(50)
-  qre_for    String?   @db.VarChar(50)
-  qre_type   String?   @db.VarChar(5)
-  created_by String?   @db.VarChar(50)
-  created_at DateTime? @default(now()) @db.Timestamp(6)
-  updated_by String?   @db.VarChar(50)
-  updated_at DateTime? @default(now()) @db.Timestamp(6)
-}
-
-model ms_qre_detail {
-  id             Int       @id @default(autoincrement())
-  qre_id         String?   @db.VarChar(50)
-  qre_listname   String?   @db.VarChar(50)
-  qre_point_plus String?   @db.VarChar(5)
-  qre_point_min  String?   @db.VarChar(5)
-  status         String?   @db.VarChar(2)
-  created_by     String?   @db.VarChar(50)
-  created_at     DateTime? @default(now()) @db.Timestamp(6)
-  updated_by     String?   @db.VarChar(50)
-  updated_at     DateTime? @default(now()) @db.Timestamp(6)
-}
-
-model ms_qre_type {
-  id            Int       @id @default(autoincrement())
-  qre_type_id   String?   @db.VarChar(25)
-  qre_type_name String?   @db.VarChar(50)
-  status        String?   @db.VarChar(2)
-  created_by    String?   @db.VarChar(50)
-  created_at    DateTime? @default(now()) @db.Timestamp(6)
-  updated_by    String?   @db.VarChar(50)
-  updated_at    DateTime? @default(now()) @db.Timestamp(6)
-}
-
-model ms_track_setting {
-  id                   Int       @id @default(autoincrement())
-  track_tolerance_late Int?
-  created_by           String?   @db.VarChar(50)
-  created_at           DateTime? @default(now()) @db.Timestamp(6)
-  updated_by           String?   @db.VarChar(50)
-  updated_at           DateTime? @default(now()) @db.Timestamp(6)
-}
-
-model ms_zone {
-  id         Int       @id @default(autoincrement())
-  zone_id    String?   @db.VarChar(25)
-  zone_name  String?   @db.VarChar(100)
-  created_by String?   @db.VarChar(50)
-  created_at DateTime? @default(now()) @db.Timestamp(6)
-  updated_by String?   @db.VarChar(50)
-  updated_at DateTime? @default(now()) @db.Timestamp(6)
-  status     String?   @db.VarChar(5)
-}
-
-model ms_zone_detail {
-  id             Int       @id @default(autoincrement())
-  zone_id        String?   @db.VarChar(25)
-  gateway_used   String?   @db.VarChar(10)
-  gateway_unused String?   @db.VarChar(10)
-  created_by     String?   @db.VarChar(50)
-  created_at     DateTime? @default(now()) @db.Timestamp(6)
-  updated_by     String?   @db.VarChar(50)
-  updated_at     DateTime? @default(now()) @db.Timestamp(6)
-}
-
-model ms_qre_detail_quest {
-  id             Int       @id @default(autoincrement())
-  detail_id      String?   @db.VarChar(25)
-  qre_quest      String?   @db.VarChar(10)
-  qre_point_plus String?   @db.VarChar(10)
-  qre_point_min  String?   @db.VarChar(50)
-  status         String?   @db.VarChar(5)
-  created_by     String?   @db.VarChar(50)
-  created_at     DateTime? @default(now()) @db.Timestamp(6)
-  updated_by     String?   @db.VarChar(50)
-  updated_at     DateTime? @default(now()) @db.Timestamp(6)
-}
-
-model ms_absent_stat {
-  id          Int       @id @default(autoincrement())
-  absent_name String?   @db.VarChar(50)
-  created_by  String?   @db.VarChar(50)
-  created_at  DateTime? @default(now()) @db.Timestamp(6)
-  updated_by  String?   @db.VarChar(50)
-  updated_at  DateTime? @default(now()) @db.Timestamp(6)
-}
-
-model ms_alert_subtype {
-  id                 Int       @id @default(autoincrement())
-  alert_subtype_name String?   @db.VarChar(50)
-  created_by         String?   @db.VarChar(50)
-  created_at         DateTime? @default(now()) @db.Timestamp(6)
-  updated_by         String?   @db.VarChar(50)
-  updated_at         DateTime? @default(now()) @db.Timestamp(6)
-}
-
-model ms_legend {
-  id          Int       @id @default(autoincrement())
-  legend_name String?   @db.VarChar(50)
-  created_by  String?   @db.VarChar(50)
-  created_at  DateTime? @default(now()) @db.Timestamp(6)
-  updated_by  String?   @db.VarChar(50)
-  updated_at  DateTime? @default(now()) @db.Timestamp(6)
-}
-
-model ms_legend_detail {
-  id         Int       @id @default(autoincrement())
-  legend_id  Int?
-  status     String?   @db.VarChar(30)
-  performa   String?   @db.VarChar(10)
-  created_by String?   @db.VarChar(50)
-  created_at DateTime? @default(now()) @db.Timestamp(6)
-  updated_by String?   @db.VarChar(50)
-  updated_at DateTime? @default(now()) @db.Timestamp(6)
-}
-
-model ms_menu {
-  id         Int       @id @default(autoincrement())
-  menu_name  String?   @db.VarChar(50)
-  created_by String?   @db.VarChar(50)
-  created_at DateTime? @default(now()) @db.Timestamp(6)
-  updated_by String?   @db.VarChar(50)
-  updated_at DateTime? @default(now()) @db.Timestamp(6)
-}
-
-model ms_privilage {
-  id              Int       @id @default(autoincrement())
-  permission_name String?   @db.VarChar(50)
-  created_by      String?   @db.VarChar(50)
-  created_at      DateTime? @default(now()) @db.Timestamp(6)
-  updated_by      String?   @db.VarChar(50)
-  updated_at      DateTime? @default(now()) @db.Timestamp(6)
-}
-
-model ms_privilage_detail {
-  id           Int       @id @default(autoincrement())
-  privilage_id Int?
-  role         String?   @db.VarChar(25)
-  created_by   String?   @db.VarChar(50)
-  created_at   DateTime? @default(now()) @db.Timestamp(6)
-  updated_by   String?   @db.VarChar(50)
-  updated_at   DateTime? @default(now()) @db.Timestamp(6)
-}
-
-model ms_shift {
-  id         Int       @id @default(autoincrement())
-  shift_name String?   @db.VarChar(50)
-  start_time DateTime? @default(now()) @db.Timestamp(6)
-  end_time   DateTime? @default(now()) @db.Timestamp(6)
-  created_by String?   @db.VarChar(50)
-  created_at DateTime? @default(now()) @db.Timestamp(6)
-  updated_by String?   @db.VarChar(50)
-  updated_at DateTime? @default(now()) @db.Timestamp(6)
-}
-
-model ms_status_info {
-  id          Int       @id @default(autoincrement())
-  status_name String?   @db.VarChar(25)
-  created_by  String?   @db.VarChar(50)
-  created_at  DateTime? @default(now()) @db.Timestamp(6)
-  updated_by  String?   @db.VarChar(50)
-  updated_at  DateTime? @default(now()) @db.Timestamp(6)
-}
-
-model ms_track_model {
-  id          Int       @id @default(autoincrement())
-  track_model String?   @db.VarChar(50)
-  created_by  String?   @db.VarChar(50)
-  created_at  DateTime? @default(now()) @db.Timestamp(6)
-  updated_by  String?   @db.VarChar(50)
-  updated_at  DateTime? @default(now()) @db.Timestamp(6)
-}
-
-model ms_track_tolerance {
-  id         Int       @id @default(autoincrement())
-  tolerance  DateTime? @db.Timestamp(6)
-  created_by String?   @db.VarChar(50)
-  created_at DateTime? @default(now()) @db.Timestamp(6)
-  updated_by String?   @db.VarChar(50)
-  updated_at DateTime? @default(now()) @db.Timestamp(6)
-}
-
-model ms_track_type {
-  id         Int       @id @default(autoincrement())
-  track_type String?   @db.VarChar(50)
-  created_by String?   @db.VarChar(50)
-  created_at DateTime? @default(now()) @db.Timestamp(6)
-  updated_by String?   @db.VarChar(50)
-  updated_at DateTime? @default(now()) @db.Timestamp(6)
+enum EventType {
+  page_view
+  article_view
+  donation_view
+  download
+  share
 }
