@@ -366,6 +366,104 @@ export class AdminController {
     }
   }
 
+  /**
+   * POST /api/v1/admin/articles/:id/featured
+   * Toggle featured status of article
+   */
+  static async toggleFeaturedArticle(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+      
+      const article = await AdminService.toggleFeaturedArticle(id);
+      
+      const response = ApiResponse.success(article, 'Article featured status updated successfully');
+      res.json(response);
+    } catch (error) {
+      if (error instanceof Error && error.message === 'Article not found') {
+        return res.status(404).json(
+          ApiResponse.error('Article not found', 404)
+        );
+      }
+      next(error);
+    }
+  }
+
+  /**
+   * POST /api/v1/admin/articles/bulk-delete
+   * Bulk delete articles
+   */
+  static async bulkDeleteArticles(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { ids }: { ids: string[] } = req.body;
+
+      if (!ids || !Array.isArray(ids) || ids.length === 0) {
+        return res.status(400).json(
+          ApiResponse.error('Article IDs array is required', 400)
+        );
+      }
+
+      const deletedCount = await AdminService.bulkDeleteArticles(ids);
+      
+      const response = ApiResponse.success({ deletedCount }, `${deletedCount} articles deleted successfully`);
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * POST /api/v1/admin/articles/:id/duplicate
+   * Duplicate article
+   */
+  static async duplicateArticle(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+      const authorName = req.admin?.username || 'Admin';
+      
+      const duplicatedArticle = await AdminService.duplicateArticle(id, authorName);
+      
+      const response = ApiResponse.success(duplicatedArticle, 'Article duplicated successfully');
+      res.status(201).json(response);
+    } catch (error) {
+      if (error instanceof Error && error.message === 'Article not found') {
+        return res.status(404).json(
+          ApiResponse.error('Article not found', 404)
+        );
+      }
+      next(error);
+    }
+  }
+
+  /**
+   * GET /api/v1/admin/articles/categories
+   * Get available article categories
+   */
+  static async getArticleCategories(req: Request, res: Response, next: NextFunction) {
+    try {
+      const categories = await AdminService.getArticleCategories();
+      
+      const response = ApiResponse.success(categories, 'Article categories retrieved successfully');
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * GET /api/v1/admin/articles/tags
+   * Get popular article tags
+   */
+  static async getArticleTags(req: Request, res: Response, next: NextFunction) {
+    try {
+      const tags = await AdminService.getPopularTags();
+      
+      const response = ApiResponse.success(tags, 'Popular tags retrieved successfully');
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
   // ==================== DONATIONS MANAGEMENT ====================
 
   /**

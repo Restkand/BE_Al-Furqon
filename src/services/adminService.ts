@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import jwt, { SignOptions } from 'jsonwebtoken';
 import { randomBytes } from 'crypto';
@@ -453,6 +453,9 @@ export class AdminService {
           id: true,
           title: true,
           slug: true,
+          description: true,
+          content: true,
+          image: true,
           status: true,
           category: true,
           authorName: true,
@@ -460,6 +463,7 @@ export class AdminService {
           views: true,
           likes: true,
           featured: true,
+          tags: true,
           createdAt: true,
           updatedAt: true
         }
@@ -467,8 +471,15 @@ export class AdminService {
       prisma.article.count({ where })
     ]);
 
+    // Transform tags from JSON to array
+    const transformedArticles = articles.map(article => ({
+      ...article,
+      tags: Array.isArray(article.tags) ? article.tags : [],
+      allowComments: true // Default value, you can add this field to your schema if needed
+    }));
+
     return {
-      data: articles as AdminArticle[],
+      data: transformedArticles as AdminArticle[],
       pagination: {
         page,
         limit,
@@ -495,10 +506,10 @@ export class AdminService {
         description: data.description,
         content: data.content,
         image: data.image,
-        category: data.category as any, // Cast to match Prisma enum
+        category: data.category.toLowerCase() as any, // Convert to lowercase to match enum
         status: data.status as any,     // Cast to match Prisma enum
         featured: data.featured || false,
-        tags: data.tags ? JSON.stringify(data.tags) : undefined,
+        tags: data.tags && data.tags.length > 0 ? data.tags : Prisma.DbNull,
         authorName,
         publishedAt: data.status === 'published' ? new Date() : null
       }
@@ -511,10 +522,21 @@ export class AdminService {
   static async updateArticle(id: string, data: UpdateArticleRequest) {
     const updateData: any = { ...data };
     
+    // Remove fields that don't exist in Prisma schema
+    delete updateData.allowComments;
+    
     if (data.title) {
       updateData.slug = data.title.toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/^-|-$/g, '');
+    }
+
+    if (data.category) {
+      updateData.category = data.category.toLowerCase();
+    }
+
+    if (data.tags) {
+      updateData.tags = data.tags.length > 0 ? data.tags : Prisma.DbNull;
     }
 
     if (data.status === 'published' && !updateData.publishedAt) {
@@ -537,6 +559,88 @@ export class AdminService {
   }
 
   /**
+   * Toggle featured status of article
+   */
+  static async toggleFeaturedArticle(id: string) {
+    const article = await prisma.article.findUnique({
+      where: { id }
+    });
+
+    if (!article) {
+      throw new Error('Article not found');
+    }
+
+    return await prisma.article.update({
+      where: { id },
+      data: {
+        featured: !article.featured
+      }
+    });
+  }
+
+  /**
+   * Bulk delete articles
+   */
+  static async bulkDeleteArticles(ids: string[]): Promise<number> {
+    const result = await prisma.article.deleteMany({
+      where: {
+        id: {
+          in: ids
+        }
+      }
+    });
+
+    return result.count;
+  }
+
+  /**
+   * Duplicate article
+   */
+  static async duplicateArticle(id: string, authorName: string) {
+    const article = await prisma.article.findUnique({
+      where: { id }
+    });
+
+    if (!article) {
+      throw new Error('Article not found');
+    }
+
+    // Generate new slug for duplicate
+    const baseSlug = article.slug + '-copy';
+    const existingSlugs = await prisma.article.findMany({
+      where: {
+        slug: {
+          startsWith: baseSlug
+        }
+      },
+      select: { slug: true }
+    });
+
+    let newSlug = baseSlug;
+    let counter = 1;
+    while (existingSlugs.some(item => item.slug === newSlug)) {
+      newSlug = `${baseSlug}-${counter}`;
+      counter++;
+    }
+
+    return await prisma.article.create({
+      data: {
+        title: `${article.title} (Copy)`,
+        slug: newSlug,
+        description: article.description,
+        content: article.content,
+        image: article.image,
+        category: article.category,
+        status: 'draft', // Always create as draft
+        featured: false, // Never feature duplicates
+        tags: article.tags || Prisma.DbNull,
+        authorName,
+        publishedAt: null
+      }
+    });
+  }
+
+  /**
    * Update refresh token
    */
   static async updateRefreshToken(userId: string, refreshToken: string) {
@@ -550,9 +654,64 @@ export class AdminService {
    * Get article by ID
    */
   static async getArticleById(id: string) {
-    return await prisma.article.findUnique({
+    const article = await prisma.article.findUnique({
       where: { id }
     });
+
+    if (!article) {
+      return null;
+    }
+
+    return {
+      ...article,
+      tags: Array.isArray(article.tags) ? article.tags : [],
+      allowComments: true // Default value
+    };
+  }
+
+  /**
+   * Get available article categories
+   */
+  static async getArticleCategories() {
+    const categories = await prisma.article.groupBy({
+      by: ['category'],
+      _count: {
+        category: true
+      }
+    });
+
+    return categories.map(cat => ({
+      name: cat.category,
+      count: cat._count.category
+    }));
+  }
+
+  /**
+   * Get popular tags
+   */
+  static async getPopularTags() {
+    const articles = await prisma.article.findMany({
+      select: {
+        tags: true
+      }
+    });
+
+    const tagCounts: Record<string, number> = {};
+
+    articles.forEach(article => {
+      if (article.tags && Array.isArray(article.tags)) {
+        (article.tags as string[]).forEach(tag => {
+          if (typeof tag === 'string') {
+            tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+          }
+        });
+      }
+    });
+
+    return Object.entries(tagCounts)
+      .sort(([,a], [,b]) => b - a)
+      .slice(0, 20) // Top 20 tags
+      .map(([tag, count]) => ({ name: tag, count }));
   }
 
   // === DONATIONS MANAGEMENT ===

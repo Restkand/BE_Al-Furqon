@@ -65,10 +65,17 @@ router.post('/dashboard/stats/refresh', requireAnyAdmin, DashboardController.ref
 // ==================== ARTICLES MANAGEMENT ====================
 
 router.get('/articles', requireAnyAdmin, AdminController.getArticles);
+router.get('/articles/categories', requireAnyAdmin, AdminController.getArticleCategories);
+router.get('/articles/tags', requireAnyAdmin, AdminController.getArticleTags);
 router.get('/articles/:id', requireAnyAdmin, AdminController.getArticle);
 router.post('/articles', requireAnyAdmin, upload.single('image'), AdminController.createArticle);
 router.put('/articles/:id', requireAnyAdmin, upload.single('image'), AdminController.updateArticle);
 router.delete('/articles/:id', requireAnyAdmin, AdminController.deleteArticle);
+
+// Additional article endpoints for frontend integration
+router.post('/articles/:id/featured', requireAnyAdmin, AdminController.toggleFeaturedArticle);
+router.post('/articles/bulk-delete', requireAnyAdmin, AdminController.bulkDeleteArticles);
+router.post('/articles/:id/duplicate', requireAnyAdmin, AdminController.duplicateArticle);
 
 // ==================== DONATIONS MANAGEMENT ====================
 
@@ -81,6 +88,7 @@ router.delete('/donations/:id', requireAnyAdmin, AdminController.deleteDonation)
 // ==================== NEWS MANAGEMENT ====================
 
 router.get('/news', requireAnyAdmin, AdminController.getNews);
+router.get('/news/:id', requireAnyAdmin, AdminController.getNewsItem);
 router.post('/news', requireAnyAdmin, upload.single('image'), AdminController.createNews);
 router.put('/news/:id', requireAnyAdmin, upload.single('image'), AdminController.updateNews);
 router.delete('/news/:id', requireAnyAdmin, AdminController.deleteNews);
@@ -91,5 +99,9 @@ router.get('/users', requireSuperAdmin, AdminController.getUsers);
 router.post('/users', requireSuperAdmin, AdminController.createUser);
 router.put('/users/:id', requireSuperAdmin, AdminController.updateUser);
 router.delete('/users/:id', requireSuperAdmin, AdminController.deleteUser);
+
+// ==================== FILE UPLOAD ====================
+
+router.post('/upload', requireAnyAdmin, upload.single('file'), AdminController.uploadFile);
 
 export default router;

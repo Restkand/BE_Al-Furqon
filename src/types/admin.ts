@@ -75,6 +75,9 @@ export interface AdminArticle {
   id: string;
   title: string;
   slug: string;
+  description: string;
+  content: string;
+  image?: string;
   status: 'draft' | 'published' | 'archived';
   category: string;
   authorName: string;
@@ -82,6 +85,8 @@ export interface AdminArticle {
   views: number;
   likes: number;
   featured: boolean;
+  tags: string[];
+  allowComments?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

@@ -74,6 +74,7 @@ enum Category {
   sumbangan
   fasilitas
   profil
+  kajian
 }
 
 enum Status {
