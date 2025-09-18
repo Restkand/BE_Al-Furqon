@@ -366,10 +366,7 @@ export class AdminController {
     }
   }
 
-  /**
-   * POST /api/v1/admin/articles/:id/featured
-   * Toggle featured status of article
-   */
+
   static async toggleFeaturedArticle(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
@@ -443,6 +440,21 @@ export class AdminController {
       const categories = await AdminService.getArticleCategories();
       
       const response = ApiResponse.success(categories, 'Article categories retrieved successfully');
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * GET /api/v1/admin/articles/categories/valid
+   * Get all valid category options with aliases
+   */
+  static async getValidCategories(req: Request, res: Response, next: NextFunction) {
+    try {
+      const categories = AdminService.getValidCategories();
+      
+      const response = ApiResponse.success(categories, 'Valid categories retrieved successfully');
       res.json(response);
     } catch (error) {
       next(error);

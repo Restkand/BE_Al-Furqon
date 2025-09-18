@@ -1,7 +1,6 @@
 import { PrismaClient, Prisma } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import jwt, { SignOptions } from 'jsonwebtoken';
-import { randomBytes } from 'crypto';
 import {
   AdminUser,
   AdminStats,
@@ -21,15 +20,11 @@ import {
   UpdateUserRequest,
   RecentActivity,
   ChartData,
-  MonthlyData
 } from '../types/admin';
 
 const prisma = new PrismaClient();
 
 export class AdminService {
-  /**
-   * Authenticate admin user
-   */
   static async authenticateAdmin(username: string, password: string) {
     try {
       const user = await prisma.user.findFirst({
@@ -54,7 +49,6 @@ export class AdminService {
         throw new Error('Invalid credentials');
       }
 
-      // Update login info
       await prisma.user.update({
         where: { id: user.id },
         data: {
@@ -65,13 +59,11 @@ export class AdminService {
 
       return user;
     } catch (error) {
+      console.error('Error authenticating admin:', error);
       throw error;
     }
   }
 
-  /**
-   * Generate JWT tokens
-   */
   static generateTokens(user: any) {
     const payload = {
       userId: user.id,
@@ -90,9 +82,6 @@ export class AdminService {
     return { accessToken, refreshToken };
   }
 
-  /**
-   * Refresh access token
-   */
   static async refreshToken(refreshToken: string) {
     try {
       const jwtRefreshSecret = process.env.JWT_REFRESH_SECRET || 'your-refresh-secret';
@@ -112,7 +101,6 @@ export class AdminService {
 
       const tokens = this.generateTokens(user);
       
-      // Update refresh token in database
       await prisma.user.update({
         where: { id: user.id },
         data: { refreshToken: tokens.refreshToken }
@@ -120,13 +108,10 @@ export class AdminService {
 
       return tokens;
     } catch (error) {
+      console.error('Error refreshing token:', error);
       throw new Error('Invalid refresh token');
     }
   }
-
-  /**
-   * Logout admin
-   */
   static async logout(userId: string) {
     await prisma.user.update({
       where: { id: userId },
@@ -134,9 +119,6 @@ export class AdminService {
     });
   }
 
-  /**
-   * Logout all admin sessions (invalidate all refresh tokens)
-   */
   static async logoutAllSessions() {
     await prisma.user.updateMany({
       where: {
@@ -148,9 +130,6 @@ export class AdminService {
     });
   }
 
-  /**
-   * Force refresh all admin users tokens
-   */
   static async refreshAllAdminTokens() {
     const adminUsers = await prisma.user.findMany({
       where: {
@@ -186,9 +165,6 @@ export class AdminService {
     return refreshResults;
   }
 
-  /**
-   * Get current admin user by ID
-   */
   static async getCurrentUser(userId: string) {
     const user = await prisma.user.findUnique({
       where: { 
@@ -224,9 +200,6 @@ export class AdminService {
     };
   }
 
-  /**
-   * Get admin dashboard statistics
-   */
   static async getDashboardStats(): Promise<AdminStats> {
     const [
       totalUsers,
@@ -263,11 +236,7 @@ export class AdminService {
     };
   }
 
-  /**
-   * Get recent activity
-   */
   static async getRecentActivity(): Promise<RecentActivity[]> {
-    // This is a simplified version - you might want to implement an activity log table
     const [articles, donations, news] = await Promise.all([
       prisma.article.findMany({
         take: 5,
@@ -337,19 +306,15 @@ export class AdminService {
       });
     });
 
-    return activities.sort((a, b) => 
+    activities.sort((a, b) => 
       new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-    ).slice(0, 10);
+    );
+    return activities.slice(0, 10);
   }
 
-  /**
-   * Get chart data for dashboard
-   */
   static async getChartData(): Promise<ChartData> {
     const currentDate = new Date();
-    const sixMonthsAgo = new Date(currentDate.getFullYear(), currentDate.getMonth() - 6, 1);
 
-    // Get monthly data for the last 6 months
     const months = [];
     for (let i = 5; i >= 0; i--) {
       const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
@@ -414,11 +379,6 @@ export class AdminService {
     return chartData;
   }
 
-  // === ARTICLES MANAGEMENT ===
-
-  /**
-   * Get articles with pagination and filters
-   */
   static async getArticles(filters: AdminFilters): Promise<PaginatedResponse<AdminArticle>> {
     const {
       page = 1,
@@ -471,11 +431,10 @@ export class AdminService {
       prisma.article.count({ where })
     ]);
 
-    // Transform tags from JSON to array
     const transformedArticles = articles.map(article => ({
       ...article,
       tags: Array.isArray(article.tags) ? article.tags : [],
-      allowComments: true // Default value, you can add this field to your schema if needed
+      allowComments: true 
     }));
 
     return {
@@ -491,13 +450,50 @@ export class AdminService {
     };
   }
 
-  /**
-   * Create new article
-   */
+  static validateCategory(category: string): string {
+    const validCategories = ['kegiatan', 'berita', 'sumbangan', 'fasilitas', 'profil', 'kajian'];
+    const categoryLower = category.toLowerCase();
+    
+    const categoryMap: Record<string, string> = {
+      'pengumuman': 'berita',
+      'announcement': 'berita',
+      'umum': 'berita',
+      'general': 'berita',
+      'aktivitas': 'kegiatan',
+      'activity': 'kegiatan',
+      'event': 'kegiatan',
+      'acara': 'kegiatan',
+      'donasi': 'sumbangan',
+      'donation': 'sumbangan',
+      'infaq': 'sumbangan',
+      'zakat': 'sumbangan',
+      'about': 'profil',
+      'tentang': 'profil',
+      'profile': 'profil',
+      'facility': 'fasilitas',
+      'study': 'kajian',
+      'pembelajaran': 'kajian',
+      'pengajian': 'kajian'
+    };
+
+    if (validCategories.includes(categoryLower)) {
+      return categoryLower;
+    }
+
+    if (categoryMap[categoryLower]) {
+      return categoryMap[categoryLower];
+    }
+
+    console.warn(`Unknown category "${category}", defaulting to "berita"`);
+    return 'berita';
+  }
+
   static async createArticle(data: CreateArticleRequest, authorName: string) {
     const slug = data.title.toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-|-$/g, '');
+      .replace(/^-|^$/g, '');
+
+      const validCategory = this.validateCategory(data.category);
 
     return await prisma.article.create({
       data: {
@@ -506,8 +502,8 @@ export class AdminService {
         description: data.description,
         content: data.content,
         image: data.image,
-        category: data.category.toLowerCase() as any, // Convert to lowercase to match enum
-        status: data.status as any,     // Cast to match Prisma enum
+        category: validCategory as any,
+        status: data.status as any,
         featured: data.featured || false,
         tags: data.tags && data.tags.length > 0 ? data.tags : Prisma.DbNull,
         authorName,
@@ -516,23 +512,19 @@ export class AdminService {
     });
   }
 
-  /**
-   * Update article
-   */
   static async updateArticle(id: string, data: UpdateArticleRequest) {
     const updateData: any = { ...data };
     
-    // Remove fields that don't exist in Prisma schema
     delete updateData.allowComments;
     
     if (data.title) {
       updateData.slug = data.title.toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-|-$/g, '');
+        .replace(/^-|^$/g, '');
     }
 
     if (data.category) {
-      updateData.category = data.category.toLowerCase();
+      updateData.category = this.validateCategory(data.category);
     }
 
     if (data.tags) {
@@ -549,18 +541,12 @@ export class AdminService {
     });
   }
 
-  /**
-   * Delete article
-   */
   static async deleteArticle(id: string) {
     return await prisma.article.delete({
       where: { id }
     });
   }
 
-  /**
-   * Toggle featured status of article
-   */
   static async toggleFeaturedArticle(id: string) {
     const article = await prisma.article.findUnique({
       where: { id }
@@ -578,9 +564,7 @@ export class AdminService {
     });
   }
 
-  /**
-   * Bulk delete articles
-   */
+  
   static async bulkDeleteArticles(ids: string[]): Promise<number> {
     const result = await prisma.article.deleteMany({
       where: {
@@ -593,9 +577,6 @@ export class AdminService {
     return result.count;
   }
 
-  /**
-   * Duplicate article
-   */
   static async duplicateArticle(id: string, authorName: string) {
     const article = await prisma.article.findUnique({
       where: { id }
@@ -605,7 +586,6 @@ export class AdminService {
       throw new Error('Article not found');
     }
 
-    // Generate new slug for duplicate
     const baseSlug = article.slug + '-copy';
     const existingSlugs = await prisma.article.findMany({
       where: {
@@ -631,8 +611,8 @@ export class AdminService {
         content: article.content,
         image: article.image,
         category: article.category,
-        status: 'draft', // Always create as draft
-        featured: false, // Never feature duplicates
+        status: 'draft', 
+        featured: false,
         tags: article.tags || Prisma.DbNull,
         authorName,
         publishedAt: null
@@ -640,9 +620,6 @@ export class AdminService {
     });
   }
 
-  /**
-   * Update refresh token
-   */
   static async updateRefreshToken(userId: string, refreshToken: string) {
     await prisma.user.update({
       where: { id: userId },
@@ -650,9 +627,6 @@ export class AdminService {
     });
   }
 
-  /**
-   * Get article by ID
-   */
   static async getArticleById(id: string) {
     const article = await prisma.article.findUnique({
       where: { id }
@@ -665,13 +639,10 @@ export class AdminService {
     return {
       ...article,
       tags: Array.isArray(article.tags) ? article.tags : [],
-      allowComments: true // Default value
+      allowComments: true 
     };
   }
 
-  /**
-   * Get available article categories
-   */
   static async getArticleCategories() {
     const categories = await prisma.article.groupBy({
       by: ['category'],
@@ -680,15 +651,62 @@ export class AdminService {
       }
     });
 
+    const categoryInfo = {
+      kegiatan: { label: 'Kegiatan', description: 'Kegiatan masjid dan komunitas' },
+      berita: { label: 'Berita', description: 'Berita dan pengumuman' },
+      sumbangan: { label: 'Sumbangan', description: 'Program donasi dan infaq' },
+      fasilitas: { label: 'Fasilitas', description: 'Fasilitas masjid' },
+      profil: { label: 'Profil', description: 'Profil dan sejarah masjid' },
+      kajian: { label: 'Kajian', description: 'Kajian dan pembelajaran' }
+    };
+
     return categories.map(cat => ({
-      name: cat.category,
+      value: cat.category,
+      label: categoryInfo[cat.category as keyof typeof categoryInfo]?.label || cat.category,
+      description: categoryInfo[cat.category as keyof typeof categoryInfo]?.description || '',
       count: cat._count.category
     }));
   }
 
-  /**
-   * Get popular tags
-   */
+
+  static getValidCategories() {
+    return {
+      categories: [
+        {
+          value: 'kegiatan',
+          label: 'Kegiatan',
+          aliases: ['aktivitas', 'activity', 'event', 'acara']
+        },
+        {
+          value: 'berita',
+          label: 'Berita',
+          aliases: ['pengumuman', 'announcement', 'umum', 'general']
+        },
+        {
+          value: 'sumbangan',
+          label: 'Sumbangan',
+          aliases: ['donasi', 'donation', 'infaq', 'zakat']
+        },
+        {
+          value: 'fasilitas',
+          label: 'Fasilitas',
+          aliases: ['facility']
+        },
+        {
+          value: 'profil',
+          label: 'Profil',
+          aliases: ['about', 'tentang', 'profile']
+        },
+        {
+          value: 'kajian',
+          label: 'Kajian',
+          aliases: ['study', 'pembelajaran', 'pengajian']
+        }
+      ]
+    };
+  }
+
+
   static async getPopularTags() {
     const articles = await prisma.article.findMany({
       select: {
@@ -710,15 +728,10 @@ export class AdminService {
 
     return Object.entries(tagCounts)
       .sort(([,a], [,b]) => b - a)
-      .slice(0, 20) // Top 20 tags
+      .slice(0, 20) 
       .map(([tag, count]) => ({ name: tag, count }));
   }
 
-  // === DONATIONS MANAGEMENT ===
-
-  /**
-   * Get donations with pagination and filters
-   */
   static async getDonations(filters: AdminFilters): Promise<PaginatedResponse<AdminDonation>> {
     const {
       page = 1,
@@ -781,13 +794,10 @@ export class AdminService {
     };
   }
 
-  /**
-   * Create new donation
-   */
   static async createDonation(data: CreateDonationRequest) {
     const slug = data.title.toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-|-$/g, '');
+      .replace(/^-|^$/g, '');
 
     return await prisma.donation.create({
       data: {
@@ -798,16 +808,13 @@ export class AdminService {
     });
   }
 
-  /**
-   * Update donation
-   */
   static async updateDonation(id: string, data: UpdateDonationRequest) {
     const updateData: any = { ...data };
     
     if (data.title) {
       updateData.slug = data.title.toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-|-$/g, '');
+        .replace(/^-|^$/g, '');
     }
 
     return await prisma.donation.update({
@@ -816,18 +823,12 @@ export class AdminService {
     });
   }
 
-  /**
-   * Delete donation
-   */
   static async deleteDonation(id: string) {
     return await prisma.donation.delete({
       where: { id }
     });
   }
 
-  /**
-   * Get donation by ID
-   */
   static async getDonationById(id: string) {
     const donation = await prisma.donation.findUnique({
       where: { id },
@@ -848,12 +849,6 @@ export class AdminService {
 
     return null;
   }
-
-  // === NEWS MANAGEMENT ===
-
-  /**
-   * Get news with pagination and filters
-   */
   static async getNews(filters: AdminFilters): Promise<PaginatedResponse<AdminNews>> {
     const {
       page = 1,
@@ -911,13 +906,10 @@ export class AdminService {
     };
   }
 
-  /**
-   * Create new news
-   */
   static async createNews(data: CreateNewsRequest, authorName: string) {
     const slug = data.title.toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-|-$/g, '');
+      .replace(/^-|^$/g, '');
 
     return await prisma.news.create({
       data: {
@@ -926,24 +918,21 @@ export class AdminService {
         description: data.description,
         content: data.content,
         image: data.image,
-        category: data.category as any,    // Cast to match Prisma enum
-        priority: data.priority as any,    // Cast to match Prisma enum
+        category: data.category as any,    
+        priority: data.priority as any,
         publishedAt: data.publishedAt,
         authorName
       }
     });
   }
 
-  /**
-   * Update news
-   */
   static async updateNews(id: string, data: UpdateNewsRequest) {
     const updateData: any = { ...data };
     
     if (data.title) {
       updateData.slug = data.title.toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-|-$/g, '');
+        .replace(/^-|^$/g, '');
     }
 
     return await prisma.news.update({
@@ -952,29 +941,18 @@ export class AdminService {
     });
   }
 
-  /**
-   * Delete news
-   */
   static async deleteNews(id: string) {
     return await prisma.news.delete({
       where: { id }
     });
   }
 
-  /**
-   * Get news by ID
-   */
   static async getNewsById(id: string) {
     return await prisma.news.findUnique({
       where: { id }
     });
   }
 
-  // === USER MANAGEMENT ===
-
-  /**
-   * Get users with pagination and filters
-   */
   static async getUsers(filters: AdminFilters): Promise<PaginatedResponse<AdminUser>> {
     const {
       page = 1,
@@ -1040,9 +1018,6 @@ export class AdminService {
     };
   }
 
-  /**
-   * Create new user
-   */
   static async createUser(data: CreateUserRequest) {
     const hashedPassword = await bcrypt.hash(data.password, 12);
     
@@ -1055,9 +1030,6 @@ export class AdminService {
     });
   }
 
-  /**
-   * Update user
-   */
   static async updateUser(id: string, data: UpdateUserRequest) {
     const updateData: any = { ...data };
     
@@ -1075,20 +1047,12 @@ export class AdminService {
     });
   }
 
-  /**
-   * Delete user
-   */
   static async deleteUser(id: string) {
     return await prisma.user.delete({
       where: { id }
     });
   }
 
-  // === TRANSACTIONS ===
-
-  /**
-   * Get transactions with pagination and filters
-   */
   static async getTransactions(filters: AdminFilters): Promise<PaginatedResponse<AdminTransaction>> {
     const {
       page = 1,

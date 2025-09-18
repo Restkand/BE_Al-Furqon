@@ -1,25 +1,15 @@
 import NodeCache from 'node-cache';
-
-/**
- * Cache Service - In-Memory Cache untuk Development tanpa Redis
- */
 class CacheService {
-  private cache: NodeCache;
-
+  private readonly cache: NodeCache;
   constructor() {
-    // Default TTL 1 hour
     this.cache = new NodeCache({ 
       stdTTL: parseInt(process.env.CACHE_TTL || '3600'),
-      checkperiod: 120 // Check expired keys every 2 minutes
+      checkperiod: 120 
     });
     
-    console.log('✅ Cache Service initialized (In-Memory)');
   }
 
-  /**
-   * Get value from cache
-   */
-  async get(key: string): Promise<any | null> {
+  async get(key: string): Promise<any> {
     try {
       const value = this.cache.get(key);
       return value || null;
@@ -29,9 +19,6 @@ class CacheService {
     }
   }
 
-  /**
-   * Set value to cache
-   */
   async set(key: string, value: any, ttl?: number): Promise<boolean> {
     try {
       if (ttl) {
@@ -44,9 +31,6 @@ class CacheService {
     }
   }
 
-  /**
-   * Delete key from cache
-   */
   async del(key: string): Promise<boolean> {
     try {
       return this.cache.del(key) > 0;
@@ -56,9 +40,6 @@ class CacheService {
     }
   }
 
-  /**
-   * Clear all cache
-   */
   async clear(): Promise<boolean> {
     try {
       this.cache.flushAll();
@@ -69,9 +50,6 @@ class CacheService {
     }
   }
 
-  /**
-   * Get cache statistics
-   */
   getStats() {
     return this.cache.getStats();
   }
