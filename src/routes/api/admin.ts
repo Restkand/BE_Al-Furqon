@@ -66,6 +66,7 @@ router.post('/dashboard/stats/refresh', requireAnyAdmin, DashboardController.ref
 
 router.get('/articles', requireAnyAdmin, AdminController.getArticles);
 router.get('/articles/categories', requireAnyAdmin, AdminController.getArticleCategories);
+router.get('/articles/categories/valid', requireAnyAdmin, AdminController.getValidCategories);
 router.get('/articles/tags', requireAnyAdmin, AdminController.getArticleTags);
 router.get('/articles/:id', requireAnyAdmin, AdminController.getArticle);
 router.post('/articles', requireAnyAdmin, upload.single('image'), AdminController.createArticle);

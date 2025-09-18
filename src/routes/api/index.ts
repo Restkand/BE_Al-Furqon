@@ -2,19 +2,15 @@ import express from 'express';
 import { config } from 'dotenv';
 import { PrismaClient } from '@prisma/client';
 import swaggerUi from 'swagger-ui-express';
-import { specs } from '../../config/swagger';
 
-// Load environment variables
 config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 const prisma = new PrismaClient();
 
-// Basic middleware
 app.use(express.json());
 
-// CORS middleware
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
@@ -26,20 +22,10 @@ app.use((req, res, next) => {
   }
 });
 
-// Logging middleware
 app.use((req, res, next) => {
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
   next();
 });
 
-// Swagger documentation
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, {
-  explorer: true,
-  customCss: '.swagger-ui .topbar { display: none }',
-  customSiteTitle: 'Al-Furqon API Documentation'
-}));
-
-// Root route
 app.get('/', (req, res) => {
   res.json({
     success: true,
@@ -59,7 +45,6 @@ app.get('/', (req, res) => {
   });
 });
 
-// Health check route
 app.get('/health', (req, res) => {
   res.json({
     success: true,
@@ -70,20 +55,15 @@ app.get('/health', (req, res) => {
   });
 });
 
-// API Routes
-
-// 1. Home Dashboard (Public)
 app.get('/api/v1/home/dashboard', async (req, res) => {
   try {
     const [stats, latestArticles, activeDonations, latestNews] = await Promise.all([
-      // Statistics
       prisma.$transaction([
         prisma.article.count({ where: { status: 'published' } }),
         prisma.donation.count({ where: { status: 'active' } }),
         prisma.news.count({ where: { publishedAt: { not: null } } }),
         prisma.user.count()
       ]),
-      // Latest Articles
       prisma.article.findMany({
         where: { status: 'published' },
         orderBy: { createdAt: 'desc' },
@@ -99,7 +79,6 @@ app.get('/api/v1/home/dashboard', async (req, res) => {
           authorName: true
         }
       }),
-      // Active Donations
       prisma.donation.findMany({
         where: { status: 'active' },
         orderBy: { createdAt: 'desc' },
@@ -114,7 +93,6 @@ app.get('/api/v1/home/dashboard', async (req, res) => {
           endDate: true
         }
       }),
-      // Latest News
       prisma.news.findMany({
         where: { publishedAt: { not: null } },
         orderBy: { publishedAt: 'desc' },
@@ -152,7 +130,6 @@ app.get('/api/v1/home/dashboard', async (req, res) => {
   }
 });
 
-// 2. Public Statistics
 app.get('/api/v1/statistics/public', async (req, res) => {
   try {
     const stats = await prisma.$transaction([
@@ -186,7 +163,6 @@ app.get('/api/v1/statistics/public', async (req, res) => {
   }
 });
 
-// 3. Articles (Public)
 app.get('/api/v1/articles', async (req, res) => {
   try {
     const { category, limit, page } = req.query;
@@ -239,7 +215,6 @@ app.get('/api/v1/articles', async (req, res) => {
   }
 });
 
-// 4. Donations (Public)
 app.get('/api/v1/donations', async (req, res) => {
   try {
     const { category, status = 'active' } = req.query;
@@ -264,7 +239,6 @@ app.get('/api/v1/donations', async (req, res) => {
       }
     });
 
-    // Calculate progress for each donation
     const donationsWithProgress = donations.map(donation => ({
       ...donation,
       progress: Math.round((donation.collectedAmount / donation.targetAmount) * 100),
@@ -284,7 +258,6 @@ app.get('/api/v1/donations', async (req, res) => {
   }
 });
 
-// POST endpoint for donations (for seeding)
 app.post('/api/v1/donations', async (req, res) => {
   try {
     const { title, description, targetAmount, collectedAmount = 0, imageUrl, endDate } = req.body;
@@ -325,7 +298,6 @@ app.post('/api/v1/donations', async (req, res) => {
   }
 });
 
-// 5. News (Public)
 app.get('/api/v1/news', async (req, res) => {
   try {
     const { priority, limit } = req.query;
@@ -363,7 +335,6 @@ app.get('/api/v1/news', async (req, res) => {
   }
 });
 
-// POST endpoint for articles (for seeding)
 app.post('/api/v1/articles', async (req, res) => {
   try {
     const { title, content, excerpt, imageUrl, published = false } = req.body;
@@ -381,7 +352,7 @@ app.post('/api/v1/articles', async (req, res) => {
         content,
         description: excerpt || content.substring(0, 200) + '...',
         image: imageUrl,
-        category: 'kegiatan', // Default category
+        category: 'kegiatan',
         status: published ? 'published' : 'draft',
         slug: title.toLowerCase()
           .replace(/[^a-z0-9]+/g, '-')
@@ -404,7 +375,6 @@ app.post('/api/v1/articles', async (req, res) => {
   }
 });
 
-// POST endpoint for news (for seeding)
 app.post('/api/v1/news', async (req, res) => {
   try {
     const { title, content, excerpt, imageUrl } = req.body;
@@ -444,7 +414,6 @@ app.post('/api/v1/news', async (req, res) => {
   }
 });
 
-// Error handling
 app.use((err: any, req: any, res: any, next: any) => {
   console.error('Unhandled error:', err);
   res.status(500).json({
@@ -453,7 +422,6 @@ app.use((err: any, req: any, res: any, next: any) => {
   });
 });
 
-// 404 handler
 app.use('*', (req, res) => {
   res.status(404).json({
     success: false,

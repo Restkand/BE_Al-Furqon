@@ -3,9 +3,6 @@ const fetch = require('node-fetch')
 // Configuration
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'
 
-console.log('🌱 Starting Al-Furqon Data Seeder...')
-console.log(`📡 Backend URL: ${BACKEND_URL}`)
-
 // Static data
 const activityCards = [
   {
@@ -137,9 +134,7 @@ function createSlug(title) {
 
 // Upload functions
 async function uploadArticles() {
-  try {
-    console.log('\n📄 Uploading articles...')
-    
+  try {    
     const articles = activityCards.map((card, index) => ({
       title: card.title,
       slug: createSlug(card.title),
@@ -176,7 +171,6 @@ async function uploadArticles() {
       }
     }
 
-    console.log('📄 Articles upload completed')
     return true
   } catch (error) {
     console.error('❌ Articles upload failed:', error.message)
@@ -186,7 +180,6 @@ async function uploadArticles() {
 
 async function uploadDonations() {
   try {
-    console.log('\n💰 Uploading donations...')
     
     const donations = donationCards.map(card => ({
       title: card.title,

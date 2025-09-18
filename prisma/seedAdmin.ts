@@ -4,12 +4,9 @@ import bcrypt from 'bcryptjs';
 const prisma = new PrismaClient();
 
 async function seedAdminUsers() {
-  console.log('🌱 Seeding admin users...');
 
-  // Hash password for admin users
   const hashedPassword = await bcrypt.hash('admin123', 12);
 
-  // Create Super Admin
   const superAdmin = await prisma.user.upsert({
     where: { email: 'superadmin@alfurqon.com' },
     update: {},
@@ -98,30 +95,13 @@ async function seedAdminUsers() {
     }
   });
 
-  console.log('✅ Admin users created:');
-  console.log(`   Super Admin: ${superAdmin.email} / ${superAdmin.username}`);
-  console.log(`   Admin: ${admin.email} / ${admin.username}`);
-  console.log(`   Editor: ${editor.email} / ${editor.username}`);
-  console.log(`   Password untuk semua: admin123`);
-
   return { superAdmin, admin, editor };
 }
 
 async function main() {
   try {
-    console.log('🚀 Starting database seed...');
     
     await seedAdminUsers();
-    
-    console.log('✅ Database seeding completed successfully!');
-    console.log('');
-    console.log('🔑 Login credentials:');
-    console.log('   Super Admin: superadmin / admin123');
-    console.log('   Admin: admin / admin123');
-    console.log('   Editor: editor / admin123');
-    console.log('');
-    console.log('🌐 Admin Panel URL: http://localhost:5000/api/v1/admin/auth/login');
-    
   } catch (error) {
     console.error('❌ Error during seeding:', error);
     throw error;
@@ -130,7 +110,6 @@ async function main() {
   }
 }
 
-// Run the seed function
 if (require.main === module) {
   main()
     .catch((error) => {
