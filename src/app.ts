@@ -4,11 +4,12 @@ import { config } from 'dotenv';
 import corsMiddleware from './middleware/cors';
 import { errorHandler } from './middleware/errorHandler';
 import apiRoutes from './routes/api';
+import { AppConfig } from './utils/config';
 
 config();
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = AppConfig.port;
 
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" }

@@ -18,7 +18,7 @@ interface ApiResponse {
 }
 
 // Configuration
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
 const FRONTEND_BASE_URL = process.env.NEXT_PUBLIC_FRONTEND_URL || 'http://localhost:3000'
 
 console.log('🌱 Starting comprehensive seed process...')
