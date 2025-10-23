@@ -1,7 +1,7 @@
 const fetch = require('node-fetch')
 
 // Configuration
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
 
 // Static data
 const activityCards = [
