@@ -10,70 +10,70 @@ import grahaRoutes from './graha';
 const router = express.Router();
 
 router.get('/health', (req, res, next) => {
-  req.url = '/health';
+  req.url = '/api/v1/health';
   homeRoutes(req, res, next);
 });
 
 // Featured content endpoints (specific routes first)
 router.get('/articles/featured', (req, res, next) => {
-  req.url = '/articles/featured';
+  req.url = '/api/v1/articles/featured';
   homeRoutes(req, res, next);
 });
 
 router.get('/donations/active', (req, res, next) => {
-  req.url = '/donations/active';
+  req.url = '/api/v1/donations/active';
   homeRoutes(req, res, next);
 });
 
 router.get('/donations/stats', (req, res, next) => {
-  req.url = '/donations/stats';
+  req.url = '/api/v1/donations/stats';
   homeRoutes(req, res, next);
 });
 
 router.get('/news/latest', (req, res, next) => {
-  req.url = '/news/latest';
+  req.url = '/api/v1/news/latest';
   homeRoutes(req, res, next);
 });
 
 router.get('/news/top', (req, res, next) => {
-  req.url = '/news/top';
+  req.url = '/api/v1/news/top';
   homeRoutes(req, res, next);
 });
 
 // Video endpoints
 router.get('/videos/featured', (req, res, next) => {
-  req.url = '/videos/featured';
+  req.url = '/api/v1/videos/featured';
   homeRoutes(req, res, next);
 });
 
 router.get('/videos', (req, res, next) => {
-  req.url = '/videos';
+  req.url = '/api/v1/videos';
   homeRoutes(req, res, next);
 });
 
 router.get('/videos/:id', (req, res, next) => {
-  req.url = `/videos/${req.params.id}`;
+  req.url = `/api/v1/videos/${req.params.id}`;
   homeRoutes(req, res, next);
 });
 
 // CRUD endpoints for main resources
 router.get('/articles', (req, res, next) => {
-  req.url = '/articles';
+  req.url = '/api/v1/articles';
   homeRoutes(req, res, next);
 });
 
 router.get('/articles/:id', (req, res, next) => {
-  req.url = `/articles/${req.params.id}`;
+  req.url = `/api/v1/articles/${req.params.id}`;
   homeRoutes(req, res, next);
 });
 
 router.get('/donations', (req, res, next) => {
-  req.url = '/donations';
+  req.url = '/api/v1/donations';
   homeRoutes(req, res, next);
 });
 
 router.get('/donations/:id', (req, res, next) => {
-  req.url = `/donations/${req.params.id}`;
+  req.url = `/api/v1/donations/${req.params.id}`;
   homeRoutes(req, res, next);
 });
 
