@@ -19,6 +19,7 @@
     "prisma:seed": "ts-node prisma/seed.ts",
     "seed": "ts-node prisma/seed-direct.ts",
     "seed:graha": "ts-node prisma/seedGraha.ts",
+    "seed:admin": "ts-node prisma/seedAdmin.ts",
     "db:up": "docker-compose up -d postgres",
     "db:down": "docker-compose down",
     "db:setup": "powershell -ExecutionPolicy Bypass -File setup-postgres.ps1",
